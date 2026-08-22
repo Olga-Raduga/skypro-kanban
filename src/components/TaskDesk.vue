@@ -1,31 +1,37 @@
 <script setup>
-import TaskColumn from './TaskColumn.vue'
+ import { onMounted, ref } from 'vue'
+ import TaskColumn from './TaskColumn.vue'
+ import { tasks } from '../data.js'
 
-const columns = [
-  { title: 'Без статуса', tasks: [
-    { category: 'Web Design', categoryClass: '_orange' },
-    { category: 'Research', categoryClass: '_green' },
-    { category: 'Web Design', categoryClass: '_orange' },
-    { category: 'Copywriting', categoryClass: '_purple' },
-    { category: 'Web Design', categoryClass: '_orange' },
-  ] },
-  { title: 'Нужно сделать', tasks: [{ category: 'Research', categoryClass: '_green' }] },
-  { title: 'В работе', tasks: [
-    { category: 'Research', categoryClass: '_green' },
-    { category: 'Copywriting', categoryClass: '_purple' },
-    { category: 'Web Design', categoryClass: '_orange' },
-  ] },
-  { title: 'Тестирование', tasks: [{ category: 'Research', categoryClass: '_green' }] },
-  { title: 'Готово', tasks: [{ category: 'Research', categoryClass: '_green' }] },
+const columnTitles = [
+  'Без статуса',
+  'Нужно сделать',
+  'В работе',
+  'Тестирование',
+  'Готово',
 ]
+  const isLoading = ref(true)
+  onMounted(() => {
+    setTimeout(() => {
+      isLoading.value = false
+      }, 1500)
+  })
 </script>
 
 <template>
   <main class="main">
     <div class="container">
-      <div class="main__block"><div class="main__content">
-        <TaskColumn v-for="column in columns" :key="column.title" v-bind="column" />
-      </div></div>
+      <div class="main__block">
+        <div v-if="isLoading" class="loading">
+          Данные загружаются
+        </div>
+       <div class="main__content">
+        <TaskColumn v-for="title in columnTitles"
+         :key="title"
+         :title="title"
+         :tasks="tasks.filter((task) => task.status === title)" />
+       </div>
+      </div>
     </div>
   </main>
 </template>
