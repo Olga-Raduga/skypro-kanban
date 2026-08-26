@@ -22,10 +22,10 @@ const columnTitles = [
   <main class="main">
     <div class="container">
       <div class="main__block">
-        <div v-if="isLoading" class="loading">
+        <div v-if="isLoading" class="loader">
           Данные загружаются
         </div>
-       <div class="main__content">
+       <div v-else class="main__content">
         <TaskColumn v-for="title in columnTitles"
          :key="title"
          :title="title"
