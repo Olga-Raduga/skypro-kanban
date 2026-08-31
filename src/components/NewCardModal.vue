@@ -1,3 +1,11 @@
+<script setup>
+import { topicThemes } from '../data.js'
+const topics = Object.keys(topicThemes)
+const getTopicStyle = (topic) => {
+return topicThemes[topic]
+}
+</script>
+
 <template>
 			<div class="pop-new-card" id="popNewCard">
 				<div class="pop-new-card__container">
@@ -93,14 +101,14 @@
 							<div class="pop-new-card__categories categories">
 								<p class="categories__p subttl">Категория</p>
 								<div class="categories__themes">
-									<div class="categories__theme _orange _active-category">
-										<p class="_orange">Web Design</p>
-									</div>
-									<div class="categories__theme _green">
-										<p class="_green">Research</p>
-									</div>
-									<div class="categories__theme _purple">
-										<p class="_purple">Copywriting</p>
+									<div
+									v-for="(topic, index) in topics"
+                                    :key="topic"
+									class="categories__theme"
+									:class="{ '_active-category': index === 0 }"
+                                    :style="getTopicStyle(topic)"
+                                    >
+										<p>{{ topic }}</p>
 									</div>
 								</div>
 							</div>
@@ -110,3 +118,302 @@
 				</div>
 			</div>
 </template>
+
+<style scoped>
+.pop-new-card {
+position: fixed;
+inset: 0;
+z-index: 6;
+display: none;
+}
+.pop-new-card:target {
+display: block;
+}
+.pop-new-card__container {
+width: 100%;
+height: 100%;
+min-height: 100vh;
+padding: 0 16px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+background: rgba(0, 0, 0, 0.4);
+}
+.pop-new-card__block {
+position: relative;
+width: 100%;
+max-width: 630px;
+padding: 40px 30px 48px;
+border: 0.7px solid #d4dbe5;
+border-radius: 10px;
+background-color: #ffffff;
+}
+.pop-new-card__content {
+display: block;
+text-align: left;
+}
+.pop-new-card__ttl {
+margin-bottom: 20px;
+color: #000000;
+font-size: 20px;
+font-weight: 600;
+line-height: 24px;
+}
+.pop-new-card__close {
+position: absolute;
+top: 20px;
+right: 30px;
+color: #94a6be;
+font-size: 18px;
+}
+.pop-new-card__close:hover {
+color: #000000;
+}
+.pop-new-card__wrap {
+display: flex;
+align-items: flex-start;
+justify-content: space-between;
+}
+.pop-new-card__form {
+width: 100%;
+max-width: 370px;
+margin-bottom: 20px;
+}
+.form-new__block {
+display: flex;
+flex-direction: column;
+}
+.subttl {
+color: #000000;
+font-size: 14px;
+font-weight: 600;
+line-height: 1;
+}
+.form-new__input,
+.form-new__area {
+width: 100%;
+outline: none;
+border: 0.7px solid rgba(148, 166, 190, 0.4);
+border-radius: 8px;
+background: transparent;
+font-family: inherit;
+font-size: 14px;
+letter-spacing: -0.14px;
+}
+.form-new__input {
+height: 44px;
+margin: 20px 0;
+padding: 14px;
+}
+.form-new__area {
+height: 200px;
+max-width: 370px;
+margin-top: 14px;
+padding: 14px;
+resize: vertical;
+}
+.form-new__input::placeholder,
+.form-new__area::placeholder {
+color: #94a6be;
+font-size: 14px;
+}
+.form-new__create {
+float: right;
+width: 132px;
+height: 30px;
+border: 0;
+border-radius: 4px;
+background-color: #565eef;
+color: #ffffff;
+font-size: 14px;
+font-weight: 500;
+}
+.form-new__create:hover {
+background-color: #33399b;
+}
+/* Календарь */
+.calendar {
+width: 182px;
+margin-bottom: 20px;
+}
+.calendar__ttl {
+margin-bottom: 14px;
+padding: 0 7px;
+}
+.calendar__block {
+display: block;
+}
+.calendar__nav {
+width: 100%;
+margin-top: 14px;
+padding: 0 7px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.calendar__month {
+color: #94a6be;
+font-size: 14px;
+font-weight: 600;
+line-height: 25px;
+}
+.nav__actions {
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.nav__action {
+width: 18px;
+height: 25px;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+}
+.nav__action svg {
+fill: #94a6be;
+}
+.calendar__content {
+margin-bottom: 12px;
+}
+.calendar__days-names {
+margin: 7px 0;
+padding: 0 7px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.calendar__day-name {
+color: #94a6be;
+font-size: 10px;
+font-weight: 500;
+letter-spacing: -0.2px;
+}
+.calendar__cells {
+width: 182px;
+height: 126px;
+display: flex;
+flex-wrap: wrap;
+}
+.calendar__cell {
+width: 22px;
+height: 22px;
+margin: 2px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+color: #94a6be;
+cursor: pointer;
+font-size: 10px;
+}
+.calendar__cell._other-month {
+opacity: 0;
+}
+.calendar__cell._cell-day:hover {
+background-color: #eaEEF6;
+}
+.calendar__cell._current {
+font-weight: 700;
+}
+.calendar__period {
+padding: 0 7px;
+}
+.calendar__p {
+color: #94a6be;
+font-size: 10px;
+}
+.calendar__p span {
+color: #000000;
+}
+/* Категории */
+.categories {
+margin-bottom: 20px;
+}
+.categories__p {
+margin-bottom: 14px;
+}
+.categories__themes {
+display: flex;
+flex-wrap: wrap;
+align-items: flex-start;
+gap: 7px;
+}
+.categories__theme {
+width: auto;
+min-height: 30px;
+padding: 8px 20px;
+border-radius: 24px;
+opacity: 0.4;
+font-size: 14px;
+font-weight: 600;
+}
+.categories__theme._active-category {
+opacity: 1;
+}
+.categories__theme p {
+margin: 0;
+color: inherit;
+font-size: 14px;
+font-weight: 600;
+line-height: 14px;
+white-space: nowrap;
+}
+@media screen and (max-width: 660px) {
+.pop-new-card {
+top: 70px;
+}
+.pop-new-card__container {
+padding: 0;
+justify-content: flex-start;
+}
+.pop-new-card__block {
+min-height: 100%;
+border-radius: 0;
+}
+.pop-new-card__wrap {
+display: block;
+}
+.calendar {
+width: 100%;
+max-width: 340px;
+}
+.calendar__ttl,
+.calendar__nav,
+.calendar__period {
+padding: 0;
+}
+.calendar__cells {
+width: 344px;
+height: auto;
+justify-content: space-around;
+}
+.calendar__cell {
+width: 42px;
+height: 42px;
+font-size: 14px;
+}
+}
+@media screen and (max-width: 495px) {
+.pop-new-card__block {
+padding: 20px 16px 32px;
+}
+.pop-new-card__form {
+max-width: 100%;
+}
+.form-new__area {
+height: 100px;
+max-width: 100%;
+}
+.form-new__create {
+float: none;
+width: 100%;
+height: 40px;
+}
+.pop-new-card__close {
+right: 16px;
+}
+}
+</style>
+
