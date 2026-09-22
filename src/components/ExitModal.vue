@@ -48,6 +48,7 @@ color: #000000;
 font-size: 20px;
 font-weight: 700;
 line-height: 30px;
+letter-spacing: -0.4px;
 }
 .pop-exit__form-group {
 display: flex;
@@ -64,15 +65,18 @@ justify-content: center;
 border-radius: 4px;
 font-size: 14px;
 font-weight: 500;
+line-height: 21px;
 }
 .pop-exit__exit-yes {
 margin-right: 10px;
 background-color: #565eef;
 color: #ffffff;
+letter-spacing: -0.14px;
 }
 .pop-exit__exit-no {
 border: 1px solid #565eef;
 color: #565eef;
+letter-spacing: -0.14px;
 }
 .pop-exit__exit-yes:hover {
 background-color: #33399b;
@@ -81,6 +85,30 @@ background-color: #33399b;
 background-color: #33399b;
 color: #ffffff;
 }
+.pop-exit__exit-yes a {
+  width: 100%;
+  height: 100%;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pop-exit__exit-no a {
+  width: 100%;
+  height: 100%;
+  color: #565EEF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.subttl {
+  color: #000;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
 @media screen and (max-width: 375px) {
 .pop-exit__block {
 padding: 50px 20px;
@@ -97,5 +125,23 @@ height: 40px;
 margin-right: 0;
 margin-bottom: 10px;
 }
+}
+@media only screen and (max-width: 375px) {
+  .pop-exit__block {
+    padding: 50px 20px;
+  }
+  .pop-exit__exit-yes {
+    width: 100%;
+    height: 40px;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+  .pop-exit__exit-no {
+    width: 100%;
+    height: 40px;
+  }
+  .pop-exit__form-group {
+    display: block;
+  }
 }
 </style>

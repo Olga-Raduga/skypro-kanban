@@ -53,8 +53,10 @@ position: relative;
 .main__column {
 width: 100%;
 margin: 0 auto;
+display: block;
 }
 .cards {
+width: 100%;
 display: flex;
 overflow-x: auto;
 overflow-y: hidden;

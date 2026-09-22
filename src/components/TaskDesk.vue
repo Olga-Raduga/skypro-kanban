@@ -93,6 +93,13 @@ color: #94a6be;
 font-size: 20px;
 font-weight: 500;
 }
+.column__title p {
+  color: #94A6BE;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
 @keyframes loader-rotate {
 to {
 transform: rotate(360deg);
@@ -113,7 +120,10 @@ display: block;
 }
 .main__block {
 padding: 40px 0 64px;
+width: 100%;
+margin: 0 auto;
 }
+
 }
 </style>
 

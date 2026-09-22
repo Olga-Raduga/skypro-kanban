@@ -199,6 +199,7 @@ border-radius: 8px;
 background: transparent;
 font-family: inherit;
 font-size: 14px;
+line-height: 1;
 letter-spacing: -0.14px;
 }
 .form-new__input {
@@ -217,7 +218,18 @@ resize: vertical;
 .form-new__area::placeholder {
 color: #94a6be;
 font-size: 14px;
+font-weight: 400;
+letter-spacing: -0.14px;
 }
+
+.form-new__input::-moz-placeholder, .form-new__area::-moz-placeholder {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1px;
+  color: #94A6BE;
+  letter-spacing: -0.14px;
+}
+
 .form-new__create {
 float: right;
 width: 132px;
@@ -288,6 +300,7 @@ justify-content: space-between;
 color: #94a6be;
 font-size: 10px;
 font-weight: 500;
+line-height: normal;
 letter-spacing: -0.2px;
 }
 .calendar__cells {
@@ -307,6 +320,8 @@ border-radius: 50%;
 color: #94a6be;
 cursor: pointer;
 font-size: 10px;
+line-height: 1;
+letter-spacing: -0.2px;
 }
 .calendar__cell._other-month {
 opacity: 0;
@@ -323,10 +338,16 @@ padding: 0 7px;
 .calendar__p {
 color: #94a6be;
 font-size: 10px;
+line-height: 1;
 }
 .calendar__p span {
 color: #000000;
 }
+.calendar__cell._active-day {
+  background-color: #94A6BE;
+  color: #FFFFFF;
+}
+
 /* Категории */
 .categories {
 margin-bottom: 20px;
@@ -360,6 +381,9 @@ font-weight: 600;
 line-height: 14px;
 white-space: nowrap;
 }
+._active-category {
+  opacity: 1 !important;
+}
 @media screen and (max-width: 660px) {
 .pop-new-card {
 top: 70px;
@@ -384,9 +408,21 @@ max-width: 340px;
 .calendar__period {
 padding: 0;
 }
+.calendar .date-create {
+    display: none;
+    margin-bottom: 7px;
+}
+.calendar__p {
+    font-size: 14px;
+}
+.calendar__day-name {
+    font-size: 14px;
+}
 .calendar__cells {
 width: 344px;
 height: auto;
+display: flex;
+flex-wrap: wrap;
 justify-content: space-around;
 }
 .calendar__cell {
@@ -396,14 +432,23 @@ font-size: 14px;
 }
 }
 @media screen and (max-width: 495px) {
+.pop-new-card__container {
+padding: 0;
+justify-content: flex-start;
+}
 .pop-new-card__block {
 padding: 20px 16px 32px;
 }
 .pop-new-card__form {
 max-width: 100%;
+width: 100%;
+display: block;
+}
+.pop-new-card__calendar {
+width: 100%;
 }
 .form-new__area {
-height: 100px;
+height: 34px;
 max-width: 100%;
 }
 .form-new__create {

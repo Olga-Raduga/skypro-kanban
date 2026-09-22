@@ -129,6 +129,13 @@ height: 4px;
 border-radius: 50%;
 background-color: #94a6be;
 }
+.card__btn div {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #94A6BE;
+}
+
 .card__content {
 height: 64px;
 display: flex;
@@ -157,6 +164,19 @@ color: #94a6be;
 font-size: 10px;
 line-height: 13px;
 letter-spacing: 0.2px;
+}
+@media screen and (max-width: 1200px) {
+  .cards__card {
+    width: 220px;
+    height: 130px;
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: stretch;
+    padding: 15px 13px 19px;
+  }
 }
 @keyframes card-appearance {
 from {

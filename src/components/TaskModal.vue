@@ -183,6 +183,17 @@ background-color: #ffffff;
 display: block;
 text-align: left;
 }
+.pop-browse__content .categories__theme {
+  opacity: 1;
+}
+.pop-browse__content .theme-down {
+  display: none;
+  margin-bottom: 20px;
+}
+.pop-browse__content .theme-top {
+  display: block;
+}
+
 .pop-browse__top-block {
 margin-bottom: 18px;
 display: flex;
@@ -206,6 +217,20 @@ width: 100%;
 max-width: 370px;
 margin-bottom: 20px;
 }
+.pop-browse__btn-browse, .pop-browse__btn-edit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.pop-browse__btn-browse button, .pop-browse__btn-edit button {
+  height: 30px;
+  margin-bottom: 10px;
+  padding: 0 14px;
+}
+.pop-browse__btn-browse .btn-group button, .pop-browse__btn-edit .btn-group button {
+  margin-right: 8px;
+}
 .form-browse__block {
 display: flex;
 flex-direction: column;
@@ -223,11 +248,25 @@ background-color: #eaEEF6;
 color: #000000;
 font-family: inherit;
 font-size: 14px;
+line-height: 1;
+letter-spacing: -0.14px;
 resize: vertical;
 }
 .form-browse__area::placeholder {
-color: #94a6be;
+font-weight: 400;
+  font-size: 14px;
+  line-height: 1px;
+  color: #94A6BE;
+  letter-spacing: -0.14px;
 }
+.form-browse__area::-moz-placeholder {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1px;
+  color: #94A6BE;
+  letter-spacing: -0.14px;
+}
+
 /* Статус задачи */
 .status {
 margin-bottom: 11px;
@@ -239,6 +278,7 @@ margin-bottom: 14px;
 display: flex;
 flex-wrap: wrap;
 align-items: flex-start;
+justify-content: flex-start;
 gap: 7px;
 }
 .status__theme {
@@ -257,6 +297,8 @@ color: #ffffff;
 margin: 0;
 color: inherit;
 font-size: 14px;
+line-height: 1;
+letter-spacing: -0.14px;
 }
 /* Кнопки */
 .pop-browse__btn-browse,
@@ -291,10 +333,16 @@ border: 0.7px solid #565eef;
 background-color: transparent;
 color: #565eef;
 }
+._btn-bor a {
+  color: #565EEF;
+}
 ._btn-bg {
 border: 0;
 background-color: #565eef;
 color: #ffffff;
+}
+._btn-bg a {
+  color: #FFFFFF;
 }
 ._btn-bor:hover {
 background-color: #33399b;
@@ -326,6 +374,9 @@ font-size: 14px;
 font-weight: 600;
 line-height: 14px;
 white-space: nowrap;
+}
+._active-category {
+  opacity: 1 !important;
 }
 /* Календарь */
 .calendar {
@@ -425,6 +476,33 @@ font-size: 10px;
 .calendar__p span {
 color: #000000;
 }
+.subttl {
+  color: #000;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+
+._hover01:hover {
+  background-color: #33399b;
+}
+
+._hover02:hover, .header__user:hover {
+  color: #33399b;
+}
+._hover02:hover::after, .header__user:hover::after {
+  border-left-color: #33399b;
+  border-bottom-color: #33399b;
+}
+
+._hover03:hover {
+  background-color: #33399b;
+  color: #FFFFFF;
+}
+._hover03:hover a {
+  color: #FFFFFF;
+}
 @media screen and (max-width: 660px) {
 .pop-browse {
 top: 70px;
@@ -461,14 +539,23 @@ font-size: 14px;
 }
 }
 @media screen and (max-width: 495px) {
+.pop-new-card__container {
+padding: 0;
+justify-content: flex-start;
+}
 .pop-browse__block {
 padding: 20px 16px 32px;
 }
 .pop-browse__form {
 max-width: 100%;
+width: 100%;
+display: block;
+}
+.pop-new-card__calendar {
+width: 100%;
 }
 .form-browse__area {
-height: 100px;
+height: 37px;
 max-width: 100%;
 }
 .pop-browse__btn-browse,
