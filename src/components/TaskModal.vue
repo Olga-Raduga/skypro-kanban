@@ -1,3 +1,10 @@
+<script setup>
+import { topicThemes } from '../data.js'
+const getTopicStyle = (topic) => {
+return topicThemes[topic]
+}
+</script>
+
 <template>
 			<div class="pop-browse" id="popBrowse">
 				<div class="pop-browse__container">
@@ -5,8 +12,10 @@
 						<div class="pop-browse__content">
 							<div class="pop-browse__top-block">
 								<h3 class="pop-browse__ttl">Название задачи</h3>
-								<div class="categories__theme theme-top _orange _active-category">
-									<p class="_orange">Web Design</p>
+								<div class="categories__theme theme-top _active-category"
+								:style="getTopicStyle('Web Design')"
+								>
+									<p>Web Design</p>
 								</div>
 							</div>
 							<div class="pop-browse__status status">
@@ -112,8 +121,10 @@
 							</div>
 							<div class="theme-down__categories theme-down">
 								<p class="categories__p subttl">Категория</p>
-								<div class="categories__theme _orange _active-category">
-									<p class="_orange">Web Design</p>
+								<div class="categories__theme _active-category"
+								:style="getTopicStyle('Web Design')"
+								>
+									<p>Web Design</p>
 								</div>
 							</div>
 							<div class="pop-browse__btn-browse ">
@@ -137,3 +148,343 @@
 				</div>
 			</div>
 </template>
+
+<style scoped>
+.pop-browse {
+position: fixed;
+inset: 0;
+z-index: 7;
+display: none;
+}
+.pop-browse:target {
+display: block;
+}
+.pop-browse__container {
+width: 100%;
+height: 100%;
+min-height: 100vh;
+padding: 0 16px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+background: rgba(0, 0, 0, 0.4);
+}
+.pop-browse__block {
+position: relative;
+width: 100%;
+max-width: 630px;
+padding: 40px 30px 38px;
+border: 0.7px solid #d4dbe5;
+border-radius: 10px;
+background-color: #ffffff;
+}
+.pop-browse__content {
+display: block;
+text-align: left;
+}
+.pop-browse__top-block {
+margin-bottom: 18px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.pop-browse__ttl {
+margin: 0;
+color: #000000;
+font-size: 20px;
+font-weight: 600;
+line-height: 24px;
+}
+.pop-browse__wrap {
+display: flex;
+align-items: flex-start;
+justify-content: space-between;
+}
+.pop-browse__form {
+width: 100%;
+max-width: 370px;
+margin-bottom: 20px;
+}
+.form-browse__block {
+display: flex;
+flex-direction: column;
+}
+.form-browse__area {
+width: 100%;
+max-width: 370px;
+height: 200px;
+margin-top: 14px;
+padding: 14px;
+outline: none;
+border: 0.7px solid rgba(148, 166, 190, 0.4);
+border-radius: 8px;
+background-color: #eaEEF6;
+color: #000000;
+font-family: inherit;
+font-size: 14px;
+resize: vertical;
+}
+.form-browse__area::placeholder {
+color: #94a6be;
+}
+/* Статус задачи */
+.status {
+margin-bottom: 11px;
+}
+.status__p {
+margin-bottom: 14px;
+}
+.status__themes {
+display: flex;
+flex-wrap: wrap;
+align-items: flex-start;
+gap: 7px;
+}
+.status__theme {
+padding: 10px 14px;
+border: 0.7px solid rgba(148, 166, 190, 0.4);
+border-radius: 24px;
+color: #94a6be;
+font-size: 14px;
+}
+.status__theme._gray {
+border-color: transparent;
+background-color: #94a6be;
+color: #ffffff;
+}
+.status__theme p {
+margin: 0;
+color: inherit;
+font-size: 14px;
+}
+/* Кнопки */
+.pop-browse__btn-browse,
+.pop-browse__btn-edit {
+display: flex;
+flex-wrap: wrap;
+align-items: flex-start;
+justify-content: space-between;
+gap: 10px;
+}
+.btn-group {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+}
+.pop-browse__btn-browse button,
+.pop-browse__btn-edit button {
+min-height: 30px;
+padding: 0 14px;
+font-size: 14px;
+}
+._btn-bor,
+._btn-bg {
+min-height: 30px;
+padding: 0 14px;
+border-radius: 4px;
+font-size: 14px;
+font-weight: 500;
+}
+._btn-bor {
+border: 0.7px solid #565eef;
+background-color: transparent;
+color: #565eef;
+}
+._btn-bg {
+border: 0;
+background-color: #565eef;
+color: #ffffff;
+}
+._btn-bor:hover {
+background-color: #33399b;
+color: #ffffff;
+}
+._btn-bg:hover {
+background-color: #33399b;
+}
+._hide {
+display: none;
+}
+/* Категория */
+.categories__theme {
+width: auto;
+min-height: 30px;
+padding: 8px 20px;
+border-radius: 24px;
+opacity: 0.4;
+font-size: 14px;
+font-weight: 600;
+}
+.categories__theme._active-category {
+opacity: 1;
+}
+.categories__theme p {
+margin: 0;
+color: inherit;
+font-size: 14px;
+font-weight: 600;
+line-height: 14px;
+white-space: nowrap;
+}
+/* Календарь */
+.calendar {
+width: 182px;
+margin-bottom: 20px;
+}
+.calendar__ttl {
+margin-bottom: 14px;
+padding: 0 7px;
+}
+.calendar__block {
+display: block;
+}
+.calendar__nav {
+width: 100%;
+margin-top: 14px;
+padding: 0 7px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.calendar__month {
+color: #94a6be;
+font-size: 14px;
+font-weight: 600;
+line-height: 25px;
+}
+.nav__actions {
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.nav__action {
+width: 18px;
+height: 25px;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+}
+.nav__action svg {
+fill: #94a6be;
+}
+.calendar__content {
+margin-bottom: 12px;
+}
+.calendar__days-names {
+margin: 7px 0;
+padding: 0 7px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.calendar__day-name {
+color: #94a6be;
+font-size: 10px;
+font-weight: 500;
+}
+.calendar__cells {
+width: 182px;
+height: 126px;
+display: flex;
+flex-wrap: wrap;
+}
+.calendar__cell {
+width: 22px;
+height: 22px;
+margin: 2px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+color: #94a6be;
+cursor: pointer;
+font-size: 10px;
+}
+.calendar__cell._other-month {
+opacity: 0;
+}
+.calendar__cell._cell-day:hover {
+background-color: #eaEEF6;
+}
+.calendar__cell._active-day {
+background-color: #94a6be;
+color: #ffffff;
+}
+.calendar__cell._current {
+font-weight: 700;
+}
+.calendar__period {
+padding: 0 7px;
+}
+.calendar__p {
+color: #94a6be;
+font-size: 10px;
+}
+.calendar__p span {
+color: #000000;
+}
+@media screen and (max-width: 660px) {
+.pop-browse {
+top: 70px;
+}
+.pop-browse__container {
+padding: 0;
+justify-content: flex-start;
+}
+.pop-browse__block {
+min-height: 100%;
+border-radius: 0;
+}
+.pop-browse__wrap {
+display: block;
+}
+.calendar {
+width: 100%;
+max-width: 340px;
+}
+.calendar__ttl,
+.calendar__nav,
+.calendar__period {
+padding: 0;
+}
+.calendar__cells {
+width: 344px;
+height: auto;
+justify-content: space-around;
+}
+.calendar__cell {
+width: 42px;
+height: 42px;
+font-size: 14px;
+}
+}
+@media screen and (max-width: 495px) {
+.pop-browse__block {
+padding: 20px 16px 32px;
+}
+.pop-browse__form {
+max-width: 100%;
+}
+.form-browse__area {
+height: 100px;
+max-width: 100%;
+}
+.pop-browse__btn-browse,
+.pop-browse__btn-edit {
+display: block;
+}
+.btn-group {
+width: 100%;
+display: block;
+}
+.pop-browse__btn-browse button,
+.pop-browse__btn-edit button {
+width: 100%;
+height: 40px;
+margin-bottom: 10px;
+}
+}
+</style>
+
