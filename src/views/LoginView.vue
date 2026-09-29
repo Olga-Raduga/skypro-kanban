@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const email = ref('')
@@ -19,45 +19,26 @@ const login = () => {
 </script>
 
 <template>
-  <main class="auth-page">
-    <section class="auth-card">
-    <h1 class="auth-title">Вход</h1>
-
-    <form class="auth-form" @submit.prevent="login">
-        <label class="auth-field">
-            <span>Email</span>
-            <input
-             v-model="email"
-             type="email"
-             placeholder="Введите email"
-             autocomplete="email"
-             required
-            />
-      </label>
-      <label class="auth-field">
-        <span>Пароль</span>
-        <input
-          v-model="password"
-          class="auth-input"
-          type="password"
-          placeholder="Введите пароль"
-          autocomplete="current-password"
-          required
-        />
-      </label>
-
-      <p v-if="error" class="auth-error" role="alert">
-        {{ error }}
-      </p>
-
-      <button class="auth-submit" type="submit">
+  <main>
+    <h1>Вход</h1>
+    <form @submit.prevent="login">
+      <input
+        v-model="email"
+        type="email"
+        placeholder="Введите email"
+      />
+      <input
+        v-model="password"
+        type="password"
+        placeholder="Введите пароль"
+      />
+      <p v-if="error">{{ error }}</p>
+      <button type="submit">
         Войти
       </button>
     </form>
-
-    <RouterLink class="auth-link" to="/register">
+    <RouterLink to="/register">
       Зарегистрироваться
     </RouterLink>
-    </section>
   </main>
 </template>

@@ -1,17 +1,21 @@
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { topicThemes } from '../data.js'
+const route = useRoute()
+const cardId = computed(() => route.params.id) // Достаем ID карточки из ссылки
+
 const getTopicStyle = (topic) => {
-return topicThemes[topic]
+  return topicThemes[topic]
 }
 </script>
-
 <template>
 			<div class="pop-browse" id="popBrowse">
 				<div class="pop-browse__container">
 					<div class="pop-browse__block">
 						<div class="pop-browse__content">
 							<div class="pop-browse__top-block">
-								<h3 class="pop-browse__ttl">Название задачи</h3>
+								<h3 class="pop-browse__ttl">Название задачи (ID: {{ cardId }})</h3>
 								<div class="categories__theme theme-top _active-category"
 								:style="getTopicStyle('Web Design')"
 								>

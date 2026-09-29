@@ -1,3 +1,17 @@
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const logout = () => {
+  localStorage.removeItem('isAuthenticated') // Стираем статус авторизации
+  router.replace('/login') // Перенаправляем на страницу входа
+}
+
+const stay = () => {
+  router.replace('/') // Просто возвращаем на главную страницу
+}
+</script>
 <template>
   <div id="popExit" class="pop-exit" >
     <div class="pop-exit__container">
@@ -6,8 +20,8 @@
           <h2>Выйти из аккаунта?</h2>
         </div>     
           <div class="pop-exit__form-group">
-            <a href="#" class="pop-exit__exit-yes">Да, выйти</a>
-            <a href="#" class="pop-exit__exit-no">Нет, остаться</a>
+            <button type="button" class="pop-exit__exit-yes" @click="logout">Да, выйти</button>
+            <button type="button" class="pop-exit__exit-no" @click="stay">Нет, остаться</button>
           </div>       
       </div>
     </div>
