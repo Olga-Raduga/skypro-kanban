@@ -1,5 +1,6 @@
 <script setup>
   import { computed } from 'vue'
+  import { RouterLink } from 'vue-router'
   const props = defineProps({
    id: {
     type: Number,
@@ -43,18 +44,18 @@
         <div class="card__theme" :class="topicClass">
           <p :class="topicClass">{{ topic }}</p>
         </div>
-        <a href="#popBrowse" target="_self">
+        <RouterLink :to="{ name: 'card', params: { id } }">
           <div class="card__btn">
             <div></div>
             <div></div>
             <div></div>
           </div>
-        </a>
+        </RouterLink>
       </div>
       <div class="card__content">
-        <a href="" target="_blank">
-          <h3 class="card__title">{{ title }}</h3>
-        </a>
+        <RouterLink :to="{ name: 'card', params: { id } }">
+           <h3 class="card__title">{{ title }}</h3>
+        </RouterLink>
         <div class="card__date">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
             <path d="M10.5625 2.03125H2.4375C1.7644 2.03125 1.21875 2.5769 1.21875 3.25V10.5625C1.21875 11.2356 1.7644 11.7812 10.5625 11.7812H10.5625C11.2356 11.7812 11.7812 11.2356 11.7812 10.5625V3.25C11.7812 2.5769 11.2356 2.03125 10.5625 2.03125Z" 

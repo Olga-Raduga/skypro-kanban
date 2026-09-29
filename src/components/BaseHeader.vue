@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 const isUserMenuOpen = ref(false)
+const router = useRouter()
 </script>
 <template>
   <header class="header">
@@ -13,9 +15,12 @@ const isUserMenuOpen = ref(false)
           <a href="" target="_self"><img src="/assets/logo_dark.png" alt="logo" /></a>
         </div>
         <nav class="header__nav">
-          <button class="header__btn-main-new _hover01" id="btnMainNew"><a href="#popNewCard">Создать новую задачу</a></button>
+          <button type="button" class="header__btn-main-new _hover01"
+            id="btnMainNew"
+            @click="router.push('/add-task')">Создать новую задачу
+          </button>
           <button
-           tupe="button" class="header__user _hover02"
+           type="button" class="header__user _hover02"
               :aria-expanded="isUserMenuOpen"
               aria-controls="user-set-target"
               @click="isUserMenuOpen = !isUserMenuOpen">Ivan Ivanov
@@ -30,8 +35,9 @@ const isUserMenuOpen = ref(false)
               <p>Темная тема</p>
               <input type="checkbox" class="checkbox" name="checkbox" />
             </div>
-            <button type="button" class="_hover03">
-              <a href="#popExit">Выйти</a>
+            <button type="button" class="_hover03"
+            @click="router.push('/exit')">
+            Выйти
             </button>
           </div>
         </nav>

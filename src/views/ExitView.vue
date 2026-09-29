@@ -6,7 +6,7 @@ const logout = () => {
   router.replace('/login')
 }
 const stay = () => {
-  router.back()
+  router.replace('/')
 }
 </script>
 <template>
