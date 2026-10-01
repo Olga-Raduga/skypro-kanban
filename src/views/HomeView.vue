@@ -1,21 +1,15 @@
 <script setup>
 import BaseHeader from '../components/BaseHeader.vue'
-import ExitModal from '../components/ExitModal.vue'
-import NewCardModal from '../components/NewCardModal.vue'
 import TaskDesk from '../components/TaskDesk.vue'
-import TaskModal from '../components/TaskModal.vue'
 </script>
 
 <template>
-  <div>
     <div class="wrapper">
-      <ExitModal />
-      <NewCardModal />
-      <TaskModal />
       <BaseHeader />
       <TaskDesk />
+
+      <RouterView />
     </div>
-  </div>
 </template>
 
 <style scoped>

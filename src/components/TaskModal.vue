@@ -1,12 +1,16 @@
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { topicThemes } from '../data.js'
 const route = useRoute()
 const cardId = computed(() => route.params.id) // Достаем ID карточки из ссылки
 
 const getTopicStyle = (topic) => {
   return topicThemes[topic]
+}
+const router = useRouter()
+const closeModal = () => {
+  router.replace('/')
 }
 </script>
 <template>
@@ -136,7 +140,13 @@ const getTopicStyle = (topic) => {
 									<button class="btn-browse__edit _btn-bor _hover03"><a href="#">Редактировать задачу</a></button>
 									<button class="btn-browse__delete _btn-bor _hover03"><a href="#">Удалить задачу</a></button>
 								</div>
-								<button class="btn-browse__close _btn-bg _hover01"><a href="#">Закрыть</a></button>
+								<button
+                                  type="button"
+                                  class="btn-browse__close _btn-bg _hover01"
+                                  @click="closeModal"
+                                >
+                                  Закрыть
+                                </button>
 							</div>
 							<div class="pop-browse__btn-edit _hide">
 								<div class="btn-group">
@@ -144,7 +154,9 @@ const getTopicStyle = (topic) => {
 									<button class="btn-edit__edit _btn-bor _hover03"><a href="#">Отменить</a></button>
 									<button class="btn-edit__delete _btn-bor _hover03" id="btnDelete"><a href="#">Удалить задачу</a></button>
 								</div>
-								<button class="btn-edit__close _btn-bg _hover01"><a href="#">Закрыть</a></button>
+								<button type="button" class="btn-edit__close _btn-bg _hover01" @click="closeModal"> 
+									Закрыть
+								</button>
 							</div>
 													
 						</div>
@@ -158,11 +170,9 @@ const getTopicStyle = (topic) => {
 position: fixed;
 inset: 0;
 z-index: 7;
-display: none;
-}
-.pop-browse:target {
 display: block;
 }
+
 .pop-browse__container {
 width: 100%;
 height: 100%;

@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 const isUserMenuOpen = ref(false)
 const router = useRouter()
 </script>
@@ -9,16 +9,14 @@ const router = useRouter()
     <div class="container">
       <div class="header__block">
         <div class="header__logo">
-          <a href="#">
-            <img src="/assets/logo.png" alt="Логотип Skypro" 
-            />
-          </a>
+          <RouterLink to="/">
+            <img src="/assets/logo.png" alt="Логотип Skypro" />
+          </RouterLink>
         </div>
         <div class="header__logo _dark">
-          <a href="#">
-            <img src="/assets/logo_dark.png" alt="Логотип Skypro" 
-            />
-          </a>
+          <RouterLink to="/">
+            <img src="/assets/logo_dark.png" alt="Логотип Skypro"
+          </RouterLink>
         </div>
         <nav class="header__nav">
           <button type="button" class="header__btn-main-new _hover01"

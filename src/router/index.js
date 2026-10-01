@@ -16,6 +16,23 @@ const router = createRouter({
             meta: {
                 requiresAuth: true,
             },
+            children: [
+                {
+                    path: 'add-task',
+                    name: 'add-task',
+                    component: AddTaskView,
+                },
+                {
+                    path: 'card/:id',
+                    name: 'card',
+                    component: CardView,
+                },
+                {
+                    path: 'exit',
+                    name: 'exit',
+                    component: ExitView,
+                },
+            ],
         },
         {
             path: '/login',
@@ -27,30 +44,7 @@ const router = createRouter({
             name: 'register',
             component: RegisterView,
         },
-        {
-            path: '/add-task',
-            name: 'add-task',
-            component: AddTaskView,
-            meta: {
-                requiresAuth: true,
-            },
-        },
-        {
-            path: '/card/:id',
-            name: 'card',
-            component: CardView,
-            meta: {
-                requiresAuth: true,
-            },
-        },
-        {
-            path: '/exit',
-            name: 'exit',
-            component: ExitView,
-            meta: {
-                requiresAuth: true,
-            },
-        },
+        
         {
             path: '/:pathMatch(.*)*',
             name: 'not-found',

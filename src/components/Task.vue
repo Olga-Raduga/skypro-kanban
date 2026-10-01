@@ -1,6 +1,7 @@
 <script setup>
   import { computed } from 'vue'
   import { RouterLink } from 'vue-router'
+  import { topicThemes } from '../data.js'
   const props = defineProps({
    id: {
     type: Number,

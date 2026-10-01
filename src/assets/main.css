@@ -45,3 +45,132 @@ body {
     transform: translateX(100%);
   }
 }
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: #f1f1f1;
+}
+.auth-card {
+  width: 100%;
+  max-width: 368px;
+  padding: 40px;
+  border: 1px solid #d4dbe5;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 67px -12px rgba(0, 0, 0, 0.13);
+  text-align: center;
+}
+.auth-logo {
+  display: inline-block;
+  margin-bottom: 35px;
+}
+.auth-logo img {
+  width: 85px;
+  display: block;
+}
+.auth-card h1 {
+  margin-bottom: 25px;
+  font-size: 24px;
+  font-weight: 600;
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.auth-form input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(148, 166, 190, 0.4);
+  border-radius: 8px;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+}
+.auth-form input:focus {
+  border-color: #565eef;
+}
+.auth-form button {
+  width: 100%;
+  height: 40px;
+  margin-top: 10px;
+  border: 0;
+  border-radius: 4px;
+  background-color: #565eef;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+.auth-form button:hover {
+  background-color: #33399b;
+}
+.auth-error {
+  color: #e74c3c;
+  font-size: 13px;
+}
+.auth-link {
+  display: inline-block;
+  margin-top: 20px;
+  color: #565eef;
+  font-size: 14px;
+}
+.route-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.4);
+}
+.route-modal__card {
+  position: relative;
+  width: 100%;
+  max-width: 630px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding: 40px 30px;
+  border: 1px solid #d4dbe5;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 67px -12px rgba(0, 0, 0, 0.13);
+}
+.route-modal__card_small {
+  max-width: 370px;
+}
+.route-modal__close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: #94a6be;
+  font-size: 20px;
+  text-decoration: none;
+}
+.route-modal__close:hover {
+  color: #000000;
+}
+.route-modal h1 {
+  margin-bottom: 24px;
+  font-size: 20px;
+  font-weight: 600;
+}
+.auth-form input.auth-input_invalid,
+.auth-form input.auth-input_invalid:focus {
+  border-color: #e74c3c;
+}
+.auth-error {
+  color: #e74c3c;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+.auth-form button:disabled {
+  background-color: #94a6be;
+  cursor: not-allowed;
+}
