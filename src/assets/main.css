@@ -168,7 +168,9 @@ body {
   color: #e74c3c;
   font-size: 12px;
   line-height: 1.4;
-  text-align: center;
+  text-align: left;
+  margin-top: -8px;
+  margin-bottom: 12px;
 }
 .auth-form button:disabled {
   background-color: #94a6be;
