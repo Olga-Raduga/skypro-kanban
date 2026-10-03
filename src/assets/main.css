@@ -174,3 +174,7 @@ body {
   background-color: #94a6be;
   cursor: not-allowed;
 }
+.auth-form input.auth-input_invalid,
+.auth-form input.auth-input_invalid:focus {
+  border-color: #e74c3c;
+}

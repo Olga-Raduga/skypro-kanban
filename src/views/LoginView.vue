@@ -32,6 +32,9 @@ const login = () => {
   localStorage.setItem('isAuthenticated', 'true')
   router.push('/')
 }
+const clearLoginError = () => {
+  hasSubmitted.value = false
+}
 </script>
 
 <template>
@@ -48,6 +51,7 @@ const login = () => {
           v-model="email"
           type="email"
           placeholder="Введите email"
+          @input="clearLoginError"
           :class="{
             'auth-input_invalid':
               hasSubmitted && (!isEmailValid || !emailMatches),
@@ -57,6 +61,7 @@ const login = () => {
           v-model="password"
           type="password"
           placeholder="Введите пароль"
+          @input="clearLoginError"
           :class="{
             'auth-input_invalid':
               hasSubmitted && (!password.trim() || !passwordMatches),
