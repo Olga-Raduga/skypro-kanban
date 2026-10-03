@@ -1,31 +1,129 @@
 <script setup>
-import TaskColumn from './TaskColumn.vue'
+ import { onMounted, onUnmounted, ref } from 'vue'
+ import TaskColumn from './TaskColumn.vue'
+ import { tasks } from '../data.js'
 
-const columns = [
-  { title: 'Без статуса', tasks: [
-    { category: 'Web Design', categoryClass: '_orange' },
-    { category: 'Research', categoryClass: '_green' },
-    { category: 'Web Design', categoryClass: '_orange' },
-    { category: 'Copywriting', categoryClass: '_purple' },
-    { category: 'Web Design', categoryClass: '_orange' },
-  ] },
-  { title: 'Нужно сделать', tasks: [{ category: 'Research', categoryClass: '_green' }] },
-  { title: 'В работе', tasks: [
-    { category: 'Research', categoryClass: '_green' },
-    { category: 'Copywriting', categoryClass: '_purple' },
-    { category: 'Web Design', categoryClass: '_orange' },
-  ] },
-  { title: 'Тестирование', tasks: [{ category: 'Research', categoryClass: '_green' }] },
-  { title: 'Готово', tasks: [{ category: 'Research', categoryClass: '_green' }] },
+const columnTitles = [
+  'Без статуса',
+  'Нужно сделать',
+  'В работе',
+  'Тестирование',
+  'Готово',
 ]
+  const isLoading = ref(true)
+  let loadingTimer
+  onMounted(() => {
+    loadingTimer = setTimeout(() => {
+      isLoading.value = false
+      }, 1500)
+  })
+  onUnmounted(() => {
+clearTimeout(loadingTimer)
+})
+
 </script>
 
 <template>
   <main class="main">
     <div class="container">
-      <div class="main__block"><div class="main__content">
-        <TaskColumn v-for="column in columns" :key="column.title" v-bind="column" />
-      </div></div>
+      <div class="main__block">
+        <!-- Сценарий 1: данные ещё загружаются -->
+        <div v-if="isLoading" class="loader" aria-live="polite">
+          <span class="loader__spinner" aria-hidden="true"></span>
+          <span class="loader__text">Данные загружаются</span>
+        </div>
+        <!-- Сценарий 2: загрузка закончилась, но задач нет -->
+        <div v-else-if="tasks.length === 0" class="empty-state">
+         Задач нет
+        </div>
+        <!-- Сценарий 3: загрузка закончилась и задачи есть -->
+        <div v-else class="main__content">
+        <TaskColumn v-for="title in columnTitles"
+         :key="title"
+         :title="title"
+         :tasks="tasks.filter((task) => task.status === title)" />
+       </div>
+      </div>
     </div>
   </main>
 </template>
+
+<style scoped>
+.main {
+width: 100%;
+min-height: calc(100vh - 70px);
+background-color: #eaEEF6;
+}
+.main__block {
+width: 100%;
+padding: 25px 0 49px;
+}
+.main__content {
+display: flex;
+width: 100%;
+}
+.loader {
+min-height: 400px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 16px;
+color: #94a6be;
+font-size: 18px;
+font-weight: 500;
+}
+.loader__spinner {
+width: 36px;
+height: 36px;
+border: 4px solid rgba(86, 94, 239, 0.2);
+border-top-color: #565eef;
+border-radius: 50%;
+animation: loader-rotate 0.8s linear infinite;
+}
+.loader__text {
+animation: loader-pulse 1.3s ease-in-out infinite;
+}
+.empty-state {
+min-height: 400px;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #94a6be;
+font-size: 20px;
+font-weight: 500;
+}
+.column__title p {
+  color: #94A6BE;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
+@keyframes loader-rotate {
+to {
+transform: rotate(360deg);
+}
+}
+@keyframes loader-pulse {
+0%,
+100% {
+opacity: 0.45;
+}
+50% {
+opacity: 1;
+}
+}
+@media screen and (max-width: 1200px) {
+.main__content {
+display: block;
+}
+.main__block {
+padding: 40px 0 64px;
+width: 100%;
+margin: 0 auto;
+}
+
+}
+</style>
+

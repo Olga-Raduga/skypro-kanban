@@ -1,0 +1,20 @@
+* [33m735b838[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mhomework-routing[m[33m)[m Временный коммит: сломанные стили, нужно восстановить
+* [33m12b5ce3[m[33m ([m[1;31morigin/homework-routing[m[33m)[m Implement routing and local storage auth
+* [33m98b35b7[m Add routing views
+[31m|[m * [33m212ec19[m[33m ([m[1;32mfeature/kanban-styling[m[33m)[m Сохраняю текущие изменения
+[31m|[m [32m|[m * [33m9c3505a[m[33m ([m[1;31morigin/feature/components[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #3 from Olga-Raduga/feature/kanban-styling
+[31m|[m [32m|[m[31m/[m[32m|[m 
+[31m|[m[31m/[m[32m|[m[32m/[m  
+[31m|[m * [33mdda6f37[m[33m ([m[1;31morigin/feature/kanban-styling[m[33m)[m Выполнено ДЗ: стилизация компонентов, анимация лоадера и заглушка для пустого списка задач
+[31m|[m[31m/[m  
+*   [33m3073038[m[33m ([m[1;32mmain[m[33m, [m[1;32mfeature/components[m[33m)[m Merge pull request #2 from Olga-Raduga/homework-props-loading
+[35m|[m[36m\[m  
+[35m|[m * [33m3a57b07[m[33m ([m[1;31morigin/homework-props-loading[m[33m)[m Исправила модальное окно, по клику на имя пользователя не меняет адресную строку, при повторном нажатии на имя пользователя закрывается. Имитацию загрузки карточек исправила: - при загрузке видна только надпись по центру. - колонок и карточек в этот момент нет. - через 1,5 секунды надпись исчезает, появляются колонки и карточки.
+[35m|[m * [33m221c12b[m Complete second Vue homework
+[35m|[m *   [33m68c9eac[m[33m ([m[1;31morigin/main[m[33m)[m Merge pull request #1 from Olga-Raduga/feature/components
+[35m|[m [1;31m|[m[35m\[m  
+[35m|[m [1;31m|[m[35m/[m  
+[35m|[m[35m/[m[1;31m|[m   
+* [1;31m|[m [33mc21224a[m Разделила страницу на Vue-компоненты
+[1;31m|[m[1;31m/[m  
+* [33m903cd28[m Создала репозиторий
