@@ -1,8 +1,56 @@
 <script setup>
+import { ref } from 'vue'
 import { topicThemes } from '../data.js'
+import { createTaskRequest } from '../services/api.js'
+
 const topics = Object.keys(topicThemes)
+const selectedTopic = ref(topics[0] ?? 'Web Design')
+
+const title = ref('')
+const description = ref('')
+const isSaving = ref(false)
+const errorMessage = ref('')
+
+const emit = defineEmits(['task-created'])
+
 const getTopicStyle = (topic) => {
-return topicThemes[topic]
+ topicThemes[topic]
+ return
+}
+
+const date = ref(
+  new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+  }).format(new Date())
+)
+async function createTask() {
+  if (!title.value.trim()) {
+    errorMessage.value = 'Введите название задачи.'
+    return
+  }
+  isSaving.value = true
+  errorMessage.value = ''
+  try {
+    await createTaskRequest({
+      title: title.value.trim(),
+      description: description.value.trim(),
+      topic: selectedTopic.value,
+      status: 'Без статуса',
+      date: date.value,
+    })
+    title.value = ''
+    description.value = ''
+	// Сообщаем родителю, что API создал задачу.
+	  emit('task-created')
+	  // Закрываем модальное окно, открытое через #popNewCard.
+	  window.location.hash = ''
+  } catch (error) {
+    errorMessage.value = error.message || 'Не удалось создать задачу.'
+  } finally {
+    isSaving.value = false
+  }
 }
 </script>
 
@@ -23,18 +71,33 @@ return topicThemes[topic]
 								<form class="pop-new-card__form form-new" id="formNewCard" action="#">
 									<div class="form-new__block">
 										<label for="formTitle" class="subttl">Название задачи</label>
-										<input class="form-new__input" type="text" name="name" id="formTitle" placeholder="Введите название задачи..." autofocus>
+
+										<input
+										  v-model.trim="title"
+										  class="form-new__input" 
+										  type="text" 
+										  name="name" 
+										  id="formTitle" 
+										  placeholder="Введите название задачи..." 
+										  autofocus
+										/>
 									</div>
 									<div class="form-new__block">
 										<label for="textArea" class="subttl">Описание задачи</label>
-										<textarea class="form-new__area" name="text" id="textArea"  placeholder="Введите описание задачи..."></textarea>
+										<textarea
+										  v-model.trim="description"
+										  class="form-new__area" 
+										  name="text" 
+										  id="textArea"  
+										  placeholder="Введите описание задачи..."
+										></textarea>
 									</div>
 								</form>
 								<div class="pop-new-card__calendar calendar">
 									<p class="calendar__ttl subttl">Даты</p>									
 									<div class="calendar__block">
 										<div class="calendar__nav">
-											<div class="calendar__month">Сентябрь 2023</div>
+										  <div class="calendar__month">Сентябрь 2023</div>
 											<div class="nav__actions">
 												<div class="nav__action" data-action="prev">
 													<svg xmlns="http://www.w3.org/2000/svg" width="6" height="11" viewBox="0 0 6 11">
@@ -105,24 +168,41 @@ return topicThemes[topic]
 								</div>
 							</div>
 							<div class="pop-new-card__categories categories">
-								<p class="categories__p subttl">Категория</p>
+							  <p class="categories__p subttl">Категория</p>
 								<div class="categories__themes">
-									<div
-									v-for="(topic, index) in topics"
+								  <div
+								    v-for="topic in topics"
                                     :key="topic"
-									class="categories__theme"
-									:class="{ '_active-category': index === 0 }"
+                                    class="categories__theme"
+								    :class="{ '_active-category': selectedTopic === topic }"
                                     :style="getTopicStyle(topic)"
-                                    >
-										<p>{{ topic }}</p>
-									</div>
+                                    role="button"
+                                    tabindex="0"
+                                    @click="selectedTopic = topic"
+                                    @keydown.enter="selectedTopic = topic"
+                                    @keydown.space.prevent="selectedTopic = topic"
+								  >
+								    <p>{{ topic }}</p>
+								  </div>
 								</div>
 							</div>
-							<button class="form-new__create _hover01" id="btnCreate">Создать задачу</button>
 						</div>
+						    <p v-if="errorMessage" class="auth-error" role="alert">
+                              {{ errorMessage }}
+                            </p>
+							<button
+							  type="button" 
+							  class="form-new__create _hover01" 
+							  id="btnCreate"
+							  :disabled="isSaving"
+                              @click="createTask"
+                            >
+                              {{ isSaving ? 'Создаём…' : 'Создать задачу' }}
+                            </button>
 					</div>
 				</div>
 			</div>
+
 </template>
 
 <style scoped>

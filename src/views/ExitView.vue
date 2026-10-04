@@ -1,8 +1,9 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { clearSession } from '../services/session.js'
 const router = useRouter()
 const logout = () => {
-  localStorage.removeItem('isAuthenticated')
+  clearSession()
   router.replace('/login')
 }
 const stay = () => {

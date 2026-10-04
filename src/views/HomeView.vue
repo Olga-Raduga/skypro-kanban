@@ -1,6 +1,14 @@
 <script setup>
+import { ref } from 'vue'
 import BaseHeader from '../components/BaseHeader.vue'
 import TaskDesk from '../components/TaskDesk.vue'
+import NewCardModal from '../components/NewCardModal.vue'
+
+const taskDeskRef = ref(null)
+function onTaskCreated() {
+  taskDeskRef.value?.loadTasks()
+}
+
 </script>
 
 <template>
@@ -9,6 +17,8 @@ import TaskDesk from '../components/TaskDesk.vue'
       <TaskDesk />
 
       <RouterView />
+      <NewCardModal @task-created="onTaskCreated" />
+      <TaskDesk ref="taskDeskRef" />
     </div>
 </template>
 

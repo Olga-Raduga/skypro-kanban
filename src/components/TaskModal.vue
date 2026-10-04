@@ -19,7 +19,17 @@ const closeModal = () => {
 					<div class="pop-browse__block">
 						<div class="pop-browse__content">
 							<div class="pop-browse__top-block">
-								<h3 class="pop-browse__ttl">Название задачи (ID: {{ cardId }})</h3>
+								<h3 v-if="!isEditing"  
+								  class="pop-browse__ttl">
+								  {{ task?.title }} (ID: {{ cardId }})
+								</h3>
+								<input
+                                  v-else
+                                  v-model="title"
+                                  class="pop-browse__ttl task-edit-input"
+                                  aria-label="Название задачи"
+                                />
+
 								<div class="categories__theme theme-top _active-category"
 								:style="getTopicStyle('Web Design')"
 								>

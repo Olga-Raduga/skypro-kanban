@@ -1,7 +1,7 @@
 <script setup>
- import { onMounted, onUnmounted, ref } from 'vue'
+ import { onMounted, ref } from 'vue'
  import TaskColumn from './TaskColumn.vue'
- import { tasks } from '../data.js'
+ import { getTasksRequest } from '../services/api.js'
 
 const columnTitles = [
   'Без статуса',
@@ -10,17 +10,29 @@ const columnTitles = [
   'Тестирование',
   'Готово',
 ]
+  const tasks = ref([])
   const isLoading = ref(true)
-  let loadingTimer
-  onMounted(() => {
-    loadingTimer = setTimeout(() => {
-      isLoading.value = false
-      }, 1500)
-  })
-  onUnmounted(() => {
-clearTimeout(loadingTimer)
-})
+  const loadError = ref('')
 
+  async function loadTasks() {
+  isLoading.value = true
+  loadError.value = ''
+  try {
+    const result = await getTasksRequest()
+
+  if (!Array.isArray(result)) {
+      throw new Error('Сервер вернул список задач в неожиданном формате.')
+    }
+    tasks.value = result
+  } catch (error) {
+    loadError.value = error.message || 'Не удалось загрузить задачи.'
+  } finally {
+    isLoading.value = false
+  }
+}
+  onMounted(loadTasks)
+
+  defineExpose({ loadTasks })
 </script>
 
 <template>
@@ -31,6 +43,13 @@ clearTimeout(loadingTimer)
         <div v-if="isLoading" class="loader" aria-live="polite">
           <span class="loader__spinner" aria-hidden="true"></span>
           <span class="loader__text">Данные загружаются</span>
+        </div>
+        <div
+        v-else-if="loadError"
+        class="empty-state"
+        role="alert"
+        >
+          {{ loadError }}
         </div>
         <!-- Сценарий 2: загрузка закончилась, но задач нет -->
         <div v-else-if="tasks.length === 0" class="empty-state">

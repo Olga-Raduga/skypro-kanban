@@ -6,6 +6,7 @@ import AddTaskView from '../views/AddTaskView.vue'
 import CardView from '../views/CardView.vue'
 import ExitView from '../views/ExitView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
+import { hasSession } from '../services/session.js'
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
@@ -44,7 +45,7 @@ const router = createRouter({
             name: 'register',
             component: RegisterView,
         },
-        
+
         {
             path: '/:pathMatch(.*)*',
             name: 'not-found',
@@ -53,16 +54,19 @@ const router = createRouter({
     ],
 })
 router.beforeEach((to) => {
-    const isAuthenticated =
-        localStorage.getItem('isAuthenticated') === 'true'
-    if (to.meta.requiresAuth && !isAuthenticated) {
+    const authenticated =
+        hasSession()
+    if (to.meta.requiresAuth && !authenticated) {
         return {
             name: 'login',
+            query: {
+                redirect: to.fullPath
+            }
         }
     }
     if (
-        (to.name === 'login' || to.name === 'register') &&
-        isAuthenticated
+        authenticated &&
+        (to.name === 'login' || to.name === 'register')
     ) {
         return {
             name: 'home',
