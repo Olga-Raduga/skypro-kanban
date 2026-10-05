@@ -1,7 +1,13 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { topicThemes } from '../data.js'
 import { createTaskRequest } from '../services/api.js'
+
+const router = useRouter()
+async function closeModal() {
+  await router.replace({ name: 'home' })
+}
 
 const topics = Object.keys(topicThemes)
 const selectedTopic = ref(topics[0] ?? 'Web Design')
@@ -44,8 +50,8 @@ async function createTask() {
     description.value = ''
 	// Сообщаем родителю, что API создал задачу.
 	  emit('task-created')
-	  // Закрываем модальное окно, открытое через #popNewCard.
-	  window.location.hash = ''
+	  // Закрываем модальное окно
+	  await closeModal()
   } catch (error) {
     errorMessage.value = error.message || 'Не удалось создать задачу.'
   } finally {
@@ -64,6 +70,7 @@ async function createTask() {
                               to="/"
                               class="pop-new-card__close"
                               aria-label="Закрыть"
+							  @click.prevent="closeModal"
                             >
                               ×
                             </RouterLink>

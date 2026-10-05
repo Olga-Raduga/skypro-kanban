@@ -9,6 +9,7 @@ async function request(path, options = {}) {
     const headers = {
         Accept: 'application/json'
     }
+    
 
     if (auth) {
         const token = getToken()

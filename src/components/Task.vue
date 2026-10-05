@@ -4,7 +4,7 @@
   import { topicThemes } from '../data.js'
   const props = defineProps({
    id: {
-    type: Number,
+    type: [String, Number],
     required: true,
    },
    topic: {

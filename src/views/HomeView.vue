@@ -14,11 +14,10 @@ function onTaskCreated() {
 <template>
     <div class="wrapper">
       <BaseHeader />
-      <TaskDesk />
-
-      <RouterView />
-      <NewCardModal @task-created="onTaskCreated" />
       <TaskDesk ref="taskDeskRef" />
+      <RouterView @task-created="onTaskCreated" />
+      
+      
     </div>
 </template>
 

@@ -1,7 +1,10 @@
 <script setup>
  import { onMounted, ref } from 'vue'
  import TaskColumn from './TaskColumn.vue'
- import { getTasksRequest } from '../services/api.js'
+ import {
+  tasks,
+  loadTasks as requestTasks,
+} from '../services/tasks.js'
 
 const columnTitles = [
   'Без статуса',
@@ -10,20 +13,16 @@ const columnTitles = [
   'Тестирование',
   'Готово',
 ]
-  const tasks = ref([])
+  
   const isLoading = ref(true)
   const loadError = ref('')
 
   async function loadTasks() {
   isLoading.value = true
   loadError.value = ''
-  try {
-    const result = await getTasksRequest()
 
-  if (!Array.isArray(result)) {
-      throw new Error('Сервер вернул список задач в неожиданном формате.')
-    }
-    tasks.value = result
+  try {
+    await requestTasks()
   } catch (error) {
     loadError.value = error.message || 'Не удалось загрузить задачи.'
   } finally {
@@ -44,23 +43,28 @@ const columnTitles = [
           <span class="loader__spinner" aria-hidden="true"></span>
           <span class="loader__text">Данные загружаются</span>
         </div>
+        <!-- Сценарий 2: API вернул ошибку -->
         <div
         v-else-if="loadError"
         class="empty-state"
         role="alert"
         >
-          {{ loadError }}
+          <p>{{ loadError }}</p>
+          <button type="button" @click="loadTasks">
+            Повторить
+          </button>
         </div>
-        <!-- Сценарий 2: загрузка закончилась, но задач нет -->
+        <!-- Сценарий 3: загрузка закончилась, но задач нет -->
         <div v-else-if="tasks.length === 0" class="empty-state">
          Задач нет
         </div>
-        <!-- Сценарий 3: загрузка закончилась и задачи есть -->
+        <!-- Сценарий 4: загрузка закончилась и задачи есть -->
         <div v-else class="main__content">
         <TaskColumn v-for="title in columnTitles"
          :key="title"
          :title="title"
-         :tasks="tasks.filter((task) => task.status === title)" />
+         :tasks="tasks.filter((task) => task.status === title)"
+        />
        </div>
       </div>
     </div>
