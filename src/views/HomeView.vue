@@ -1,29 +1,33 @@
 <script setup>
+import { ref } from 'vue'
 import BaseHeader from '../components/BaseHeader.vue'
-import ExitModal from '../components/ExitModal.vue'
-import NewCardModal from '../components/NewCardModal.vue'
 import TaskDesk from '../components/TaskDesk.vue'
-import TaskModal from '../components/TaskModal.vue'
+import NewCardModal from '../components/NewCardModal.vue'
+
+const taskDeskRef = ref(null)
+function onTaskCreated() {
+  taskDeskRef.value?.loadTasks()
+}
+
 </script>
 
 <template>
-  <div>
     <div class="wrapper">
-      <ExitModal />
-      <NewCardModal />
-      <TaskModal />
       <BaseHeader />
-      <TaskDesk />
+      <TaskDesk ref="taskDeskRef" />
+      <RouterView @task-created="onTaskCreated" />
+      
+      
     </div>
-  </div>
 </template>
 
 <style scoped>
 .wrapper {
-width: 100%;
+max-width: 100%;
+width: 100vw;
 min-height: 100vh;
 overflow: hidden;
-background-color: #f1f1f1;
+background-color: #f1f1f1;  
 }
 </style>
 

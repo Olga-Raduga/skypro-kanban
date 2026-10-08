@@ -1,29 +1,30 @@
 <script setup>
 import { ref } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 const isUserMenuOpen = ref(false)
+const router = useRouter()
 </script>
 <template>
   <header class="header">
     <div class="container">
       <div class="header__block">
         <div class="header__logo">
-          <a href="#">
-            <img src="/assets/logo.png" alt="Логотип Skypro" 
-            />
-          </a>
+          <RouterLink to="/">
+            <img src="/assets/logo.png" alt="Логотип Skypro" />
+          </RouterLink>
         </div>
         <div class="header__logo _dark">
-          <a href="#">
-            <img src="/assets/logo_dark.png" alt="Логотип Skypro" 
-            />
-          </a>
+          <RouterLink to="/">
+            <img src="/assets/logo_dark.png" alt="Логотип Skypro"
+          </RouterLink>
         </div>
         <nav class="header__nav">
-          <a href="#popNewCard" class="header__btn-main-new">
-           Создать новую задачу 
-          </a>
+          <button type="button" class="header__btn-main-new _hover01"
+            id="btnMainNew"
+            @click="router.push('/add-task')">Создать новую задачу
+          </button>
           <button
-           type="button" class="header__user"
+           type="button" class="header__user _hover02"
               :aria-expanded="isUserMenuOpen"
               aria-controls="user-set-target"
               @click="isUserMenuOpen = !isUserMenuOpen">Ivan Ivanov
@@ -40,8 +41,10 @@ const isUserMenuOpen = ref(false)
               <input type="checkbox" name="theme" 
               />
             </div>
-            
-              <a href="#popExit" class="pop-user-set__exit">Выйти</a>           
+            <button type="button" class="_hover03"
+            @click="router.push('/exit')">
+            Выйти
+            </button>
           </div>
         </nav>
       </div>
@@ -50,6 +53,9 @@ const isUserMenuOpen = ref(false)
 </template>
 
 <style scoped>
+._dark {
+display: none;
+}
 .header {
 width: 100%;
 background-color: #ffffff;
@@ -125,16 +131,41 @@ background-color: #ffffff;
 box-shadow: 0 10px 39px rgba(26, 56, 101, 0.21);
 text-align: center;
 }
+
+._hover01:hover {
+  background-color: #33399b;
+}
+
+._hover02:hover, .header__user:hover {
+  color: #33399b;
+}
+._hover02:hover::after, .header__user:hover::after {
+  border-left-color: #33399b;
+  border-bottom-color: #33399b;
+}
+
+._hover03:hover {
+  background-color: #33399b;
+  color: #FFFFFF;
+}
+._hover03:hover a {
+  color: #FFFFFF;
+}
+
 .pop-user-set__name {
 margin-bottom: 4px;
 color: #000000;
 font-size: 14px;
 font-weight: 500;
+line-height: 21px;
+letter-spacing: -0.14px;
 }
 .pop-user-set__mail {
 margin-bottom: 24px;
 color: #94a6be;
 font-size: 14px;
+line-height: 21px;
+letter-spacing: -0.14px;
 }
 .pop-user-set__theme {
 margin-bottom: 24px;
@@ -144,6 +175,12 @@ justify-content: space-between;
 color: #000000;
 font-size: 14px;
 }
+.pop-user-set__theme p {
+  color: #000;
+  font-size: 14px;
+  line-height: 21px;
+  letter-spacing: -0.14px;
+}
 .pop-user-set__theme input {
 width: 24px;
 height: 13px;
@@ -151,6 +188,45 @@ appearance: none;
 border-radius: 100px;
 background-color: #eaEEF6;
 }
+
+.pop-user-set__theme input[type=checkbox] {
+  position: relative;
+  width: 24px;
+  height: 13px;
+  border-radius: 100px;
+  background: #EAEEF6;
+  outline: none;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+}
+.pop-user-set__theme input[type=checkbox]::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background-color: #94A6BE;
+  transition: 0.5s;
+}
+.pop-user-set__theme input:checked[type=checkbox]::before {
+  left: 12px;
+}
+.pop-user-set button {
+  width: 72px;
+  height: 30px;
+  background: transparent;
+  color: #565EEF;
+  border-radius: 4px;
+  border: 1px solid #565EEF;
+}
+.pop-user-set button a {
+  color: #565EEF;
+}
+
+
 .pop-user-set__exit {
 display: inline-flex;
 align-items: center;
@@ -171,9 +247,12 @@ color: #ffffff;
 position: fixed;
 left: 16px;
 bottom: 30px;
+top: auto;
 z-index: 3;
 width: calc(100vw - 32px);
 height: 40px;
+border-radius: 4px;
+margin-right: 0;
 }
 }
 </style>

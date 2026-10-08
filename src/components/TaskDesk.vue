@@ -1,7 +1,10 @@
 <script setup>
- import { onMounted, onUnmounted, ref } from 'vue'
+ import { onMounted, ref } from 'vue'
  import TaskColumn from './TaskColumn.vue'
- import { tasks } from '../data.js'
+ import {
+  tasks,
+  loadTasks as requestTasks,
+} from '../services/tasks.js'
 
 const columnTitles = [
   'Без статуса',
@@ -10,17 +13,25 @@ const columnTitles = [
   'Тестирование',
   'Готово',
 ]
+  
   const isLoading = ref(true)
-  let loadingTimer
-  onMounted(() => {
-    loadingTimer = setTimeout(() => {
-      isLoading.value = false
-      }, 1500)
-  })
-  onUnmounted(() => {
-clearTimeout(loadingTimer)
-})
+  const loadError = ref('')
 
+  async function loadTasks() {
+  isLoading.value = true
+  loadError.value = ''
+
+  try {
+    await requestTasks()
+  } catch (error) {
+    loadError.value = error.message || 'Не удалось загрузить задачи.'
+  } finally {
+    isLoading.value = false
+  }
+}
+  onMounted(loadTasks)
+
+  defineExpose({ loadTasks })
 </script>
 
 <template>
@@ -32,16 +43,28 @@ clearTimeout(loadingTimer)
           <span class="loader__spinner" aria-hidden="true"></span>
           <span class="loader__text">Данные загружаются</span>
         </div>
-        <!-- Сценарий 2: загрузка закончилась, но задач нет -->
+        <!-- Сценарий 2: API вернул ошибку -->
+        <div
+        v-else-if="loadError"
+        class="empty-state"
+        role="alert"
+        >
+          <p>{{ loadError }}</p>
+          <button type="button" @click="loadTasks">
+            Повторить
+          </button>
+        </div>
+        <!-- Сценарий 3: загрузка закончилась, но задач нет -->
         <div v-else-if="tasks.length === 0" class="empty-state">
          Задач нет
         </div>
-        <!-- Сценарий 3: загрузка закончилась и задачи есть -->
+        <!-- Сценарий 4: загрузка закончилась и задачи есть -->
         <div v-else class="main__content">
         <TaskColumn v-for="title in columnTitles"
          :key="title"
          :title="title"
-         :tasks="tasks.filter((task) => task.status === title)" />
+         :tasks="tasks.filter((task) => task.status === title)"
+        />
        </div>
       </div>
     </div>
@@ -93,6 +116,13 @@ color: #94a6be;
 font-size: 20px;
 font-weight: 500;
 }
+.column__title p {
+  color: #94A6BE;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
 @keyframes loader-rotate {
 to {
 transform: rotate(360deg);
@@ -113,7 +143,10 @@ display: block;
 }
 .main__block {
 padding: 40px 0 64px;
+width: 100%;
+margin: 0 auto;
 }
+
 }
 </style>
 

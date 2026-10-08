@@ -1,8 +1,62 @@
 <script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { topicThemes } from '../data.js'
+import { createTaskRequest } from '../services/api.js'
+
+const router = useRouter()
+async function closeModal() {
+  await router.replace({ name: 'home' })
+}
+
 const topics = Object.keys(topicThemes)
+const selectedTopic = ref(topics[0] ?? 'Web Design')
+
+const title = ref('')
+const description = ref('')
+const isSaving = ref(false)
+const errorMessage = ref('')
+
+const emit = defineEmits(['task-created'])
+
 const getTopicStyle = (topic) => {
-return topicThemes[topic]
+ topicThemes[topic]
+ return
+}
+
+const date = ref(
+  new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+  }).format(new Date())
+)
+async function createTask() {
+  if (!title.value.trim()) {
+    errorMessage.value = 'Введите название задачи.'
+    return
+  }
+  isSaving.value = true
+  errorMessage.value = ''
+  try {
+    await createTaskRequest({
+      title: title.value.trim(),
+      description: description.value.trim(),
+      topic: selectedTopic.value,
+      status: 'Без статуса',
+      date: date.value,
+    })
+    title.value = ''
+    description.value = ''
+	// Сообщаем родителю, что API создал задачу.
+	  emit('task-created')
+	  // Закрываем модальное окно
+	  await closeModal()
+  } catch (error) {
+    errorMessage.value = error.message || 'Не удалось создать задачу.'
+  } finally {
+    isSaving.value = false
+  }
 }
 </script>
 
@@ -12,23 +66,45 @@ return topicThemes[topic]
 					<div class="pop-new-card__block">
 						<div class="pop-new-card__content">
 							<h3 class="pop-new-card__ttl">Создание задачи</h3>
-							<a href="#" class="pop-new-card__close">&#10006;</a>
+							<RouterLink
+                              to="/"
+                              class="pop-new-card__close"
+                              aria-label="Закрыть"
+							  @click.prevent="closeModal"
+                            >
+                              ×
+                            </RouterLink>
 							<div class="pop-new-card__wrap">
 								<form class="pop-new-card__form form-new" id="formNewCard" action="#">
 									<div class="form-new__block">
 										<label for="formTitle" class="subttl">Название задачи</label>
-										<input class="form-new__input" type="text" name="name" id="formTitle" placeholder="Введите название задачи..." autofocus>
+
+										<input
+										  v-model.trim="title"
+										  class="form-new__input" 
+										  type="text" 
+										  name="name" 
+										  id="formTitle" 
+										  placeholder="Введите название задачи..." 
+										  autofocus
+										/>
 									</div>
 									<div class="form-new__block">
 										<label for="textArea" class="subttl">Описание задачи</label>
-										<textarea class="form-new__area" name="text" id="textArea"  placeholder="Введите описание задачи..."></textarea>
+										<textarea
+										  v-model.trim="description"
+										  class="form-new__area" 
+										  name="text" 
+										  id="textArea"  
+										  placeholder="Введите описание задачи..."
+										></textarea>
 									</div>
 								</form>
 								<div class="pop-new-card__calendar calendar">
 									<p class="calendar__ttl subttl">Даты</p>									
 									<div class="calendar__block">
 										<div class="calendar__nav">
-											<div class="calendar__month">Сентябрь 2023</div>
+										  <div class="calendar__month">Сентябрь 2023</div>
 											<div class="nav__actions">
 												<div class="nav__action" data-action="prev">
 													<svg xmlns="http://www.w3.org/2000/svg" width="6" height="11" viewBox="0 0 6 11">
@@ -99,24 +175,41 @@ return topicThemes[topic]
 								</div>
 							</div>
 							<div class="pop-new-card__categories categories">
-								<p class="categories__p subttl">Категория</p>
+							  <p class="categories__p subttl">Категория</p>
 								<div class="categories__themes">
-									<div
-									v-for="(topic, index) in topics"
+								  <div
+								    v-for="topic in topics"
                                     :key="topic"
-									class="categories__theme"
-									:class="{ '_active-category': index === 0 }"
+                                    class="categories__theme"
+								    :class="{ '_active-category': selectedTopic === topic }"
                                     :style="getTopicStyle(topic)"
-                                    >
-										<p>{{ topic }}</p>
-									</div>
+                                    role="button"
+                                    tabindex="0"
+                                    @click="selectedTopic = topic"
+                                    @keydown.enter="selectedTopic = topic"
+                                    @keydown.space.prevent="selectedTopic = topic"
+								  >
+								    <p>{{ topic }}</p>
+								  </div>
 								</div>
 							</div>
-							<button class="form-new__create _hover01" id="btnCreate">Создать задачу</button>
 						</div>
+						    <p v-if="errorMessage" class="auth-error" role="alert">
+                              {{ errorMessage }}
+                            </p>
+							<button
+							  type="button" 
+							  class="form-new__create _hover01" 
+							  id="btnCreate"
+							  :disabled="isSaving"
+                              @click="createTask"
+                            >
+                              {{ isSaving ? 'Создаём…' : 'Создать задачу' }}
+                            </button>
 					</div>
 				</div>
 			</div>
+
 </template>
 
 <style scoped>
@@ -124,11 +217,9 @@ return topicThemes[topic]
 position: fixed;
 inset: 0;
 z-index: 6;
-display: none;
-}
-.pop-new-card:target {
 display: block;
 }
+
 .pop-new-card__container {
 width: 100%;
 height: 100%;
@@ -199,6 +290,7 @@ border-radius: 8px;
 background: transparent;
 font-family: inherit;
 font-size: 14px;
+line-height: 1;
 letter-spacing: -0.14px;
 }
 .form-new__input {
@@ -217,7 +309,18 @@ resize: vertical;
 .form-new__area::placeholder {
 color: #94a6be;
 font-size: 14px;
+font-weight: 400;
+letter-spacing: -0.14px;
 }
+
+.form-new__input::-moz-placeholder, .form-new__area::-moz-placeholder {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1px;
+  color: #94A6BE;
+  letter-spacing: -0.14px;
+}
+
 .form-new__create {
 float: right;
 width: 132px;
@@ -288,6 +391,7 @@ justify-content: space-between;
 color: #94a6be;
 font-size: 10px;
 font-weight: 500;
+line-height: normal;
 letter-spacing: -0.2px;
 }
 .calendar__cells {
@@ -307,6 +411,8 @@ border-radius: 50%;
 color: #94a6be;
 cursor: pointer;
 font-size: 10px;
+line-height: 1;
+letter-spacing: -0.2px;
 }
 .calendar__cell._other-month {
 opacity: 0;
@@ -323,10 +429,16 @@ padding: 0 7px;
 .calendar__p {
 color: #94a6be;
 font-size: 10px;
+line-height: 1;
 }
 .calendar__p span {
 color: #000000;
 }
+.calendar__cell._active-day {
+  background-color: #94A6BE;
+  color: #FFFFFF;
+}
+
 /* Категории */
 .categories {
 margin-bottom: 20px;
@@ -360,6 +472,9 @@ font-weight: 600;
 line-height: 14px;
 white-space: nowrap;
 }
+._active-category {
+  opacity: 1 !important;
+}
 @media screen and (max-width: 660px) {
 .pop-new-card {
 top: 70px;
@@ -384,9 +499,21 @@ max-width: 340px;
 .calendar__period {
 padding: 0;
 }
+.calendar .date-create {
+    display: none;
+    margin-bottom: 7px;
+}
+.calendar__p {
+    font-size: 14px;
+}
+.calendar__day-name {
+    font-size: 14px;
+}
 .calendar__cells {
 width: 344px;
 height: auto;
+display: flex;
+flex-wrap: wrap;
 justify-content: space-around;
 }
 .calendar__cell {
@@ -396,14 +523,23 @@ font-size: 14px;
 }
 }
 @media screen and (max-width: 495px) {
+.pop-new-card__container {
+padding: 0;
+justify-content: flex-start;
+}
 .pop-new-card__block {
 padding: 20px 16px 32px;
 }
 .pop-new-card__form {
 max-width: 100%;
+width: 100%;
+display: block;
+}
+.pop-new-card__calendar {
+width: 100%;
 }
 .form-new__area {
-height: 100px;
+height: 34px;
 max-width: 100%;
 }
 .form-new__create {
