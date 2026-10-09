@@ -1,8 +1,14 @@
 <script setup>
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { topicThemes } from '../data.js'
-import { createTaskRequest } from '../services/api.js'
+import { TASKS_KEY } from '../injectionKeys.js'
+
+const taskStore = inject(TASKS_KEY)
+if (!taskStore) {
+  throw new Error('Не удалось получить данные задач')
+}
+const { createTask: saveTask, loadTasks } = taskStore
 
 const router = useRouter()
 async function closeModal() {
@@ -17,12 +23,9 @@ const description = ref('')
 const isSaving = ref(false)
 const errorMessage = ref('')
 
-const emit = defineEmits(['task-created'])
+const getTopicStyle = (topic) =>
+ topicThemes[topic] ?? {}
 
-const getTopicStyle = (topic) => {
- topicThemes[topic]
- return
-}
 
 const date = ref(
   new Intl.DateTimeFormat('ru-RU', {
@@ -31,6 +34,14 @@ const date = ref(
     year: '2-digit',
   }).format(new Date())
 )
+
+async function refreshTasksAfterCreate() {
+  try {
+    await loadTasks()
+  } catch {
+    // Ошибка загрузки списка записана в общий tasksError.
+  }
+}
 async function createTask() {
   if (!title.value.trim()) {
     errorMessage.value = 'Введите название задачи.'
@@ -39,7 +50,7 @@ async function createTask() {
   isSaving.value = true
   errorMessage.value = ''
   try {
-    await createTaskRequest({
+    await saveTask({
       title: title.value.trim(),
       description: description.value.trim(),
       topic: selectedTopic.value,
@@ -48,12 +59,12 @@ async function createTask() {
     })
     title.value = ''
     description.value = ''
-	// Сообщаем родителю, что API создал задачу.
-	  emit('task-created')
-	  // Закрываем модальное окно
-	  await closeModal()
+    
+  await refreshTasksAfterCreate()
+    await closeModal()
   } catch (error) {
-    errorMessage.value = error.message || 'Не удалось создать задачу.'
+    errorMessage.value =
+      error.message || 'Не удалось создать задачу.'
   } finally {
     isSaving.value = false
   }
@@ -81,11 +92,11 @@ async function createTask() {
 
 										<input
 										  v-model.trim="title"
-										  class="form-new__input" 
-										  type="text" 
-										  name="name" 
-										  id="formTitle" 
-										  placeholder="Введите название задачи..." 
+										  class="form-new__input"
+										  type="text"
+										  name="name"
+										  id="formTitle"
+										  placeholder="Введите название задачи..."
 										  autofocus
 										/>
 									</div>
@@ -93,15 +104,15 @@ async function createTask() {
 										<label for="textArea" class="subttl">Описание задачи</label>
 										<textarea
 										  v-model.trim="description"
-										  class="form-new__area" 
-										  name="text" 
-										  id="textArea"  
+										  class="form-new__area"
+										  name="text"
+										  id="textArea"
 										  placeholder="Введите описание задачи..."
 										></textarea>
 									</div>
 								</form>
 								<div class="pop-new-card__calendar calendar">
-									<p class="calendar__ttl subttl">Даты</p>									
+									<p class="calendar__ttl subttl">Даты</p>
 									<div class="calendar__block">
 										<div class="calendar__nav">
 										  <div class="calendar__month">Сентябрь 2023</div>
@@ -166,7 +177,7 @@ async function createTask() {
 												<div class="calendar__cell _other-month _weekend">1</div>
 											</div>
 										</div>
-										
+
 										<input type="hidden" id="datepick_value" value="08.09.2023">
 										<div class="calendar__period">
 											<p class="calendar__p date-end">Выберите срок исполнения <span class="date-control"></span>.</p>
@@ -198,8 +209,8 @@ async function createTask() {
                               {{ errorMessage }}
                             </p>
 							<button
-							  type="button" 
-							  class="form-new__create _hover01" 
+							  type="button"
+							  class="form-new__create _hover01"
 							  id="btnCreate"
 							  :disabled="isSaving"
                               @click="createTask"

@@ -1,8 +1,24 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { AUTH_KEY } from '../injectionKeys.js'
+
+const auth = inject(AUTH_KEY)
+if (!auth) {
+  throw new Error('Не удалось получить данные авторизации')
+}
+
 const isUserMenuOpen = ref(false)
 const router = useRouter()
+const displayName = computed(
+  () =>
+    auth.currentUser.value?.name ||
+    auth.currentUser.value?.login ||
+    'Пользователь'
+)
+const displayEmail = computed(
+  () => auth.currentUser.value?.login || ''
+)
 </script>
 <template>
   <header class="header">
@@ -15,7 +31,7 @@ const router = useRouter()
         </div>
         <div class="header__logo _dark">
           <RouterLink to="/">
-            <img src="/assets/logo_dark.png" alt="Логотип Skypro"
+            <img src="/assets/logo_dark.png" alt="Логотип Skypro"/>
           </RouterLink>
         </div>
         <nav class="header__nav">
@@ -27,18 +43,18 @@ const router = useRouter()
            type="button" class="header__user _hover02"
               :aria-expanded="isUserMenuOpen"
               aria-controls="user-set-target"
-              @click="isUserMenuOpen = !isUserMenuOpen">Ivan Ivanov
+              @click="isUserMenuOpen = !isUserMenuOpen">{{ displayName }}
           </button>
-            
+
           <div
             v-if="isUserMenuOpen"
             id="user-set-target" class="header__pop-user-set">
 
-              <p class="pop-user-set__name">Ivan Ivanov</p>
-              <p class="pop-user-set__mail">ivan.ivanov@gmail.com</p>
+              <p class="pop-user-set__name">{{ displayName }}</p>
+              <p class="pop-user-set__mail">{{ displayEmail }}</p>
             <div class="pop-user-set__theme">
               <p>Темная тема</p>
-              <input type="checkbox" name="theme" 
+              <input type="checkbox" name="theme"
               />
             </div>
             <button type="button" class="_hover03"

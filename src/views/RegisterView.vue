@@ -1,12 +1,20 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { registerUser } from '../services/api.js'
+import { AUTH_KEY } from '../injectionKeys.js'
+
+const auth = inject(AUTH_KEY)
+if (!auth) {
+  throw new Error('Не удалось получить данные авторизации')
+}
+
 
 const router = useRouter()
+
 const name = ref('')
 const email = ref('')
 const password = ref('')
+
 const hasSubmitted = ref(false)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
@@ -31,7 +39,7 @@ async function handleRegister() {
   }
   isSubmitting.value = true
   try {
-    await registerUser({
+    await auth.register({
       login: email.value.trim().toLowerCase(),
       name: name.value.trim(),
       password: password.value,
@@ -98,7 +106,7 @@ async function handleRegister() {
         <p v-if="hasSubmitted && !isPasswordValid" class="auth-error">
           Пароль должен содержать не менее 4 символов
         </p>
-  
+
         <p v-if="hasSubmitted && !isFormValid" class="auth-error">
           Введенные вами данные не корректны. Чтобы завершить регистрацию,
           введите данные корректно и повторите попытку.

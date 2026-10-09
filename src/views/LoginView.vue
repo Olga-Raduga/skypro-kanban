@@ -1,8 +1,12 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { loginUser } from '../services/api.js'
-import { setSession } from '../services/session.js'
+import { AUTH_KEY } from '../injectionKeys.js'
+
+const auth = inject(AUTH_KEY)
+if (!auth) {
+  throw new Error('Не удалось получить данные авторизации')
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -45,13 +49,11 @@ async function handlelogin() {
   }
   isSubmitting.value = true
   try {
-  // Отправляем запрос на сервер
-    const data = await loginUser({
+    await auth.login({
     login: login.value.trim(),
     password: password.value
     })
-// Сохраняем сессию пользователя (токен и статус)
-    setSession(data.user)
+
 // Проверяем, куда перенаправить пользователя после успешного входа
     const redirect = route.query.redirect
     router.replace(
@@ -127,7 +129,7 @@ async function handlelogin() {
         <button type="submit" :disabled="isSubmitting || (hasSubmitted && !isFormValid)">
           {{ isSubmitting ? 'Входим…' : 'Войти' }}
         </button>
-        
+
       </form>
 
       <RouterLink to="/register" class="auth-link">

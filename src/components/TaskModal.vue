@@ -1,12 +1,19 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { topicThemes } from '../data.js'
-import {
+import { TASKS_KEY } from '../injectionKeys.js'
+
+const taskStore = inject(TASKS_KEY)
+if (!taskStore) {
+  throw new Error('Не удалось получить данные задач')
+}
+
+const {
   deleteTask,
   getTaskById,
   updateTask,
-} from '../services/tasks.js'
+} = taskStore
 
 const route = useRoute()
 const router = useRouter()
@@ -160,7 +167,7 @@ function closeModal() {
                 </p>
 
 				<div class="pop-browse__top-block">
-					<h3 v-if="!isEditing"  
+					<h3 v-if="!isEditing"
 						class="pop-browse__ttl">
 						{{ task?.title }} (ID: {{ cardId }})
 					</h3>
@@ -172,8 +179,8 @@ function closeModal() {
                         aria-label="Название задачи"
                     />
 
-					<div 
-					    v-if="!isEditing" 
+					<div
+					    v-if="!isEditing"
 						class="categories__theme theme-top _active-category"
 						:style="getTopicStyle(task.topic)"
 					>
@@ -209,12 +216,12 @@ function closeModal() {
                             <option v-for="item in statuses" :key="item" :value="item">
                                 {{ item }}
                             </option>
-                        </select>	
+                        </select>
 					</div>
 				</div>
 
 				<div class="pop-browse__wrap">
-					<form class="pop-browse__form form-browse" @submit.prevent>									
+					<form class="pop-browse__form form-browse" @submit.prevent>
 						<div class="form-browse__block">
 							<label for="textArea01" class="subttl">
 								Описание задачи
@@ -223,8 +230,8 @@ function closeModal() {
 							<textarea
 							    id="textArea01"
                                 v-model="description"
-							    class="form-browse__area" 
-								:readonly="!isEditing" 
+							    class="form-browse__area"
+								:readonly="!isEditing"
 								placeholder="Введите описание задачи..."
 							></textarea>
 						</div>
@@ -243,10 +250,10 @@ function closeModal() {
                                 class="task-date-input"
                                 type="date"
                                 aria-label="Срок исполнения"
-                            />									
+                            />
 					</div>
 				</div>
-							
+
 				<div v-if="!isEditing" class="pop-browse__btn-browse ">
 					<div class="btn-group">
 						<button
@@ -256,9 +263,9 @@ function closeModal() {
 						>
 						    Редактировать задачу
 						</button>
-									
+
 						<button
-						    type="button" 
+						    type="button"
 							class="btn-browse__delete _btn-bor _hover03"
 							:disabled="isDeleting"
 							@click="removeTask"
@@ -286,7 +293,7 @@ function closeModal() {
 						>
 							{{ isSaving ? 'Сохраняем…' : 'Сохранить' }}
 						</button>
-									
+
 						<button
 						    type="button"
 						    class="btn-edit__edit _btn-bor _hover03"
@@ -304,7 +311,7 @@ function closeModal() {
 						</button>
 					</div>
 				</div>
-													
+
 			</div>
 		</div>
 	</div>

@@ -1,10 +1,19 @@
 <script setup>
- import { onMounted, ref } from 'vue'
+ import { computed, inject, onMounted, ref } from 'vue'
  import TaskColumn from './TaskColumn.vue'
- import {
+ import { TASKS_KEY } from '../injectionKeys.js'
+
+ const taskStore = inject(TASKS_KEY)
+if (!taskStore) {
+  throw new Error('Не удалось получить данные задач')
+}
+
+const {
   tasks,
-  loadTasks as requestTasks,
-} from '../services/tasks.js'
+  isTasksLoading,
+  tasksError: loadError,
+  loadTasks,
+} = taskStore
 
 const columnTitles = [
   'Без статуса',
@@ -13,25 +22,25 @@ const columnTitles = [
   'Тестирование',
   'Готово',
 ]
-  
-  const isLoading = ref(true)
-  const loadError = ref('')
 
-  async function loadTasks() {
-  isLoading.value = true
-  loadError.value = ''
+const isFirstLoad = ref(true)
 
+  const isLoading = computed(
+  () => isTasksLoading.value || isFirstLoad.value
+)
+async function refreshTasks() {
   try {
-    await requestTasks()
-  } catch (error) {
-    loadError.value = error.message || 'Не удалось загрузить задачи.'
+    await loadTasks()
+  } catch {
+    // Ошибка уже сохранена в tasksError и отображается в шаблоне.
   } finally {
-    isLoading.value = false
+    isFirstLoad.value = false
   }
 }
-  onMounted(loadTasks)
-
-  defineExpose({ loadTasks })
+onMounted(refreshTasks)
+defineExpose({
+  loadTasks: refreshTasks,
+})
 </script>
 
 <template>
@@ -50,7 +59,7 @@ const columnTitles = [
         role="alert"
         >
           <p>{{ loadError }}</p>
-          <button type="button" @click="loadTasks">
+          <button type="button" @click="refreshTasks">
             Повторить
           </button>
         </div>
