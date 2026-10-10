@@ -1,12 +1,20 @@
 <script setup>
+import { inject } from 'vue'
 import { useRouter } from 'vue-router'
-const router = useRouter()
-const logout = () => {
-  localStorage.removeItem('isAuthenticated')
-  router.replace('/login')
+import { AUTH_KEY } from '../injectionKeys.js'
+
+const auth = inject(AUTH_KEY)
+if (!auth) {
+  throw new Error('Не удалось получить данные авторизации')
 }
-const stay = () => {
-  router.replace('/')
+
+const router = useRouter()
+function logout() {
+  auth.logout()
+  router.replace({ name: 'login' })
+}
+function stay() {
+  router.replace({ name: 'home' })
 }
 </script>
 <template>
@@ -22,7 +30,7 @@ const stay = () => {
           Нет, остаться
         </button>
       </div>
-    </section> 
+    </section>
   </main>
 </template>
 

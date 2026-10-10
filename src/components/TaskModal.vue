@@ -1,168 +1,321 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { topicThemes } from '../data.js'
-const route = useRoute()
-const cardId = computed(() => route.params.id) // Достаем ID карточки из ссылки
+import { TASKS_KEY } from '../injectionKeys.js'
 
-const getTopicStyle = (topic) => {
-  return topicThemes[topic]
+const taskStore = inject(TASKS_KEY)
+if (!taskStore) {
+  throw new Error('Не удалось получить данные задач')
 }
+
+const {
+  deleteTask,
+  getTaskById,
+  updateTask,
+} = taskStore
+
+const route = useRoute()
 const router = useRouter()
-const closeModal = () => {
-  router.replace('/')
+
+const cardId = computed(() => String(route.params.id ?? '')) // Достаем ID карточки из ссылки
+
+const topics = Object.keys(topicThemes)
+const statuses = [
+  'Без статуса',
+  'Нужно сделать',
+  'В работе',
+  'Тестирование',
+  'Готово',
+]
+
+const task = ref(null)
+const title = ref('')
+const topic = ref('')
+const status = ref('')
+const description = ref('')
+const dueDate = ref('')
+
+const isLoading = ref(true)
+const isSaving = ref(false)
+const isDeleting = ref(false)
+const isEditing = ref(false)
+const errorMessage = ref('')
+
+function getTopicStyle(value) {
+  return topicThemes[value] ?? {}
+}
+function toDateInput(value) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+function toApiDate(value) {
+  if (!value) {
+    return task.value?.date || new Date().toISOString()
+  }
+  const [year, month, day] = value.split('-').map(Number)
+  return new Date(year, month - 1, day, 12).toISOString()
+}
+const displayDate = computed(() => {
+  if (!task.value?.date) return ''
+  const date = new Date(task.value.date)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat('ru-RU').format(date)
+})
+function fillForm(source) {
+  title.value = source.title ?? ''
+  topic.value = source.topic ?? topics[0]
+  status.value = source.status ?? statuses[0]
+  description.value = source.description ?? ''
+  dueDate.value = toDateInput(source.date)
+}
+async function loadTask(id) {
+  if (!id) {
+    errorMessage.value = 'Не указан ID задачи.'
+    isLoading.value = false
+    return
+  }
+  isLoading.value = true
+  errorMessage.value = ''
+  try {
+    task.value = await getTaskById(id)
+    fillForm(task.value)
+  } catch (error) {
+    task.value = null
+    errorMessage.value = error.message || 'Не удалось загрузить задачу.'
+  } finally {
+    isLoading.value = false
+  }
+}
+watch(
+  cardId,
+  (id) => {
+    if (id) void loadTask(id)
+  },
+  { immediate: true },
+)
+function startEditing() {
+  if (!task.value) return
+  fillForm(task.value)
+  errorMessage.value = ''
+  isEditing.value = true
+}
+function cancelEditing() {
+  if (task.value) fillForm(task.value)
+  errorMessage.value = ''
+  isEditing.value = false
+}
+async function saveTask() {
+  if (!title.value.trim()) {
+    errorMessage.value = 'Введите название задачи.'
+    return
+  }
+  isSaving.value = true
+  errorMessage.value = ''
+  try {
+    await updateTask(cardId.value, {
+      title: title.value.trim(),
+      topic: topic.value,
+      status: status.value,
+      description: description.value.trim(),
+      date: toApiDate(dueDate.value),
+    })
+    isEditing.value = false
+    await loadTask(cardId.value)
+  } catch (error) {
+    errorMessage.value = error.message || 'Не удалось сохранить задачу.'
+  } finally {
+    isSaving.value = false
+  }
+}
+async function removeTask() {
+  if (!window.confirm('Удалить задачу?')) return
+  isDeleting.value = true
+  errorMessage.value = ''
+  try {
+    await deleteTask(cardId.value)
+    router.replace({ name: 'home' })
+  } catch (error) {
+    errorMessage.value = error.message || 'Не удалось удалить задачу.'
+  } finally {
+    isDeleting.value = false
+  }
+}
+function closeModal() {
+  router.replace({ name: 'home' })
 }
 </script>
+
 <template>
-			<div class="pop-browse" id="popBrowse">
-				<div class="pop-browse__container">
-					<div class="pop-browse__block">
-						<div class="pop-browse__content">
-							<div class="pop-browse__top-block">
-								<h3 class="pop-browse__ttl">Название задачи (ID: {{ cardId }})</h3>
-								<div class="categories__theme theme-top _active-category"
-								:style="getTopicStyle('Web Design')"
-								>
-									<p>Web Design</p>
-								</div>
-							</div>
-							<div class="pop-browse__status status">
-								<p class="status__p subttl">Статус</p>
-								<div class="status__themes">
-									<div class="status__theme _hide">
-										<p>Без статуса</p>
-									</div>
-									<div class="status__theme _gray">
-										<p class="_gray">Нужно сделать</p>
-									</div>
-									<div class="status__theme _hide">
-										<p>В работе</p>
-									</div>
-									<div class="status__theme _hide">
-										<p>Тестирование</p>
-									</div>
-									<div class="status__theme _hide">
-										<p>Готово</p>
-									</div>
-								</div>
-							</div>
-							<div class="pop-browse__wrap">
-								<form class="pop-browse__form form-browse" id="formBrowseCard" action="#">									
-									<div class="form-browse__block">
-										<label for="textArea01" class="subttl">Описание задачи</label>
-										<textarea class="form-browse__area" name="text" id="textArea01"  readonly placeholder="Введите описание задачи..."></textarea>
-									</div>
-								</form>
-								<div class="pop-new-card__calendar calendar">
-									<p class="calendar__ttl subttl">Даты</p>
-									<div class="calendar__block">
-										<div class="calendar__nav">
-											<div class="calendar__month">Сентябрь 2023</div>
-											<div class="nav__actions">
-												<div class="nav__action" data-action="prev">
-													<svg xmlns="http://www.w3.org/2000/svg" width="6" height="11" viewBox="0 0 6 11">
-														<path d="M5.72945 1.95273C6.09018 1.62041 6.09018 1.0833 5.72945 0.750969C5.36622 0.416344 4.7754 0.416344 4.41218 0.750969L0.528487 4.32883C-0.176162 4.97799 -0.176162 6.02201 0.528487 6.67117L4.41217 10.249C4.7754 10.5837 5.36622 10.5837 5.72945 10.249C6.09018 9.9167 6.09018 9.37959 5.72945 9.04727L1.87897 5.5L5.72945 1.95273Z" />
-													</svg>
-												</div>
-												<div class="nav__action" data-action="next">
-													<svg xmlns="http://www.w3.org/2000/svg" width="6" height="11" viewBox="0 0 6 11">
-														<path d="M0.27055 9.04727C-0.0901833 9.37959 -0.0901832 9.9167 0.27055 10.249C0.633779 10.5837 1.2246 10.5837 1.58783 10.249L5.47151 6.67117C6.17616 6.02201 6.17616 4.97799 5.47151 4.32883L1.58782 0.75097C1.2246 0.416344 0.633778 0.416344 0.270549 0.75097C-0.0901831 1.0833 -0.090184 1.62041 0.270549 1.95273L4.12103 5.5L0.27055 9.04727Z" />
-													</svg>
-												</div>
-											</div>
-										</div>
-										<div class="calendar__content">
-											<div class="calendar__days-names">
-												<div class="calendar__day-name">пн</div>
-												<div class="calendar__day-name">вт</div>
-												<div class="calendar__day-name">ср</div>
-												<div class="calendar__day-name">чт</div>
-												<div class="calendar__day-name">пт</div>
-												<div class="calendar__day-name -weekend-">сб</div>
-												<div class="calendar__day-name -weekend-">вс</div>
-											</div>
-											<div class="calendar__cells">
-												<div class="calendar__cell _other-month">28</div>
-												<div class="calendar__cell _other-month">29</div>
-												<div class="calendar__cell _other-month">30</div>
-												<div class="calendar__cell _cell-day">31</div>
-												<div class="calendar__cell _cell-day">1</div>
-												<div class="calendar__cell _cell-day _weekend">2</div>
-												<div class="calendar__cell _cell-day _weekend">3</div>
-												<div class="calendar__cell _cell-day">4</div>
-												<div class="calendar__cell _cell-day">5</div>
-												<div class="calendar__cell _cell-day ">6</div>
-												<div class="calendar__cell _cell-day">7</div>
-												<div class="calendar__cell _cell-day _current">8</div>
-												<div class="calendar__cell _cell-day _weekend _active-day">9</div>
-												<div class="calendar__cell _cell-day _weekend">10</div>
-												<div class="calendar__cell _cell-day">11</div>
-												<div class="calendar__cell _cell-day">12</div>
-												<div class="calendar__cell _cell-day">13</div>
-												<div class="calendar__cell _cell-day">14</div>
-												<div class="calendar__cell _cell-day">15</div>
-												<div class="calendar__cell _cell-day _weekend">16</div>
-												<div class="calendar__cell _cell-day _weekend">17</div>
-												<div class="calendar__cell _cell-day">18</div>
-												<div class="calendar__cell _cell-day">19</div>
-												<div class="calendar__cell _cell-day">20</div>
-												<div class="calendar__cell _cell-day">21</div>
-												<div class="calendar__cell _cell-day">22</div>
-												<div class="calendar__cell _cell-day _weekend">23</div>
-												<div class="calendar__cell _cell-day _weekend">24</div>
-												<div class="calendar__cell _cell-day">25</div>
-												<div class="calendar__cell _cell-day">26</div>
-												<div class="calendar__cell _cell-day">27</div>
-												<div class="calendar__cell _cell-day">28</div>
-												<div class="calendar__cell _cell-day">29</div>
-												<div class="calendar__cell _cell-day _weekend">30</div>
-												<div class="calendar__cell _other-month _weekend">1</div>
-											</div>
-										</div>
-								
-										<input type="hidden" id="datepick_value" value="08.09.2023">
-										<div class="calendar__period">
-											<p class="calendar__p date-end">Срок исполнения: <span class="date-control">09.09.23</span></p>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="theme-down__categories theme-down">
-								<p class="categories__p subttl">Категория</p>
-								<div class="categories__theme _active-category"
-								:style="getTopicStyle('Web Design')"
-								>
-									<p>Web Design</p>
-								</div>
-							</div>
-							<div class="pop-browse__btn-browse ">
-								<div class="btn-group">
-									<button class="btn-browse__edit _btn-bor _hover03"><a href="#">Редактировать задачу</a></button>
-									<button class="btn-browse__delete _btn-bor _hover03"><a href="#">Удалить задачу</a></button>
-								</div>
-								<button
-                                  type="button"
-                                  class="btn-browse__close _btn-bg _hover01"
-                                  @click="closeModal"
-                                >
-                                  Закрыть
-                                </button>
-							</div>
-							<div class="pop-browse__btn-edit _hide">
-								<div class="btn-group">
-									<button class="btn-edit__edit _btn-bg _hover01"><a href="#">Сохранить</a></button>
-									<button class="btn-edit__edit _btn-bor _hover03"><a href="#">Отменить</a></button>
-									<button class="btn-edit__delete _btn-bor _hover03" id="btnDelete"><a href="#">Удалить задачу</a></button>
-								</div>
-								<button type="button" class="btn-edit__close _btn-bg _hover01" @click="closeModal"> 
-									Закрыть
-								</button>
-							</div>
-													
+  <div class="pop-browse" id="popBrowse">
+	<div class="pop-browse__container">
+		<div class="pop-browse__block">
+			<p v-if="isLoading" class="task-message" role="status">
+              Загружаем задачу…
+            </p>
+			<p v-else-if="errorMessage && !task" class="task-error" role="alert">
+              {{ errorMessage }}
+            </p>
+
+			<div v-else-if="task" class="pop-browse__content">
+				<p v-if="errorMessage" class="task-error" role="alert">
+                  {{ errorMessage }}
+                </p>
+
+				<div class="pop-browse__top-block">
+					<h3 v-if="!isEditing"
+						class="pop-browse__ttl">
+						{{ task?.title }} (ID: {{ cardId }})
+					</h3>
+
+					<input
+                        v-else
+                        v-model.trim="title"
+                        class="pop-browse__ttl task-edit-input"
+                        aria-label="Название задачи"
+                    />
+
+					<div
+					    v-if="!isEditing"
+						class="categories__theme theme-top _active-category"
+						:style="getTopicStyle(task.topic)"
+					>
+						<p>{{ task.topic }}</p>
+					</div>
+
+					<select
+                        v-else
+                        v-model="topic"
+                        class="task-select"
+                        aria-label="Категория задачи"
+                    >
+                        <option v-for="item in topics" :key="item" :value="item">
+                            {{ item }}
+                        </option>
+                    </select>
+				</div>
+
+				<div class="pop-browse__status status">
+					<p class="status__p subttl">Статус</p>
+
+					<div class="status__themes">
+					    <div v-if="!isEditing" class="status__theme _gray">
+							<p>{{ task.status }}</p>
 						</div>
+
+						<select
+                            v-else
+                            v-model="status"
+                            class="task-select"
+                            aria-label="Статус задачи"
+                        >
+                            <option v-for="item in statuses" :key="item" :value="item">
+                                {{ item }}
+                            </option>
+                        </select>
 					</div>
 				</div>
+
+				<div class="pop-browse__wrap">
+					<form class="pop-browse__form form-browse" @submit.prevent>
+						<div class="form-browse__block">
+							<label for="textArea01" class="subttl">
+								Описание задачи
+							</label>
+
+							<textarea
+							    id="textArea01"
+                                v-model="description"
+							    class="form-browse__area"
+								:readonly="!isEditing"
+								placeholder="Введите описание задачи..."
+							></textarea>
+						</div>
+					</form>
+
+					<div class="calendar">
+						<p class="calendar__ttl subttl">Срок исполнения</p>
+
+						    <p v-if="!isEditing" class="calendar__p">
+								{{ displayDate || 'Срок не указан' }}
+							</p>
+
+							<input
+                                v-else
+                                v-model="dueDate"
+                                class="task-date-input"
+                                type="date"
+                                aria-label="Срок исполнения"
+                            />
+					</div>
+				</div>
+
+				<div v-if="!isEditing" class="pop-browse__btn-browse ">
+					<div class="btn-group">
+						<button
+						    type="button"
+						    class="btn-browse__edit _btn-bor _hover03"
+						    @click="startEditing"
+						>
+						    Редактировать задачу
+						</button>
+
+						<button
+						    type="button"
+							class="btn-browse__delete _btn-bor _hover03"
+							:disabled="isDeleting"
+							@click="removeTask"
+						>
+						    {{ isDeleting ? 'Удаляем…' : 'Удалить задачу' }}
+					    </button>
+					</div>
+
+						<button
+                            type="button"
+                            class="btn-browse__close _btn-bg _hover01"
+                            @click="closeModal"
+                        >
+                            Закрыть
+                        </button>
+				</div>
+
+				<div v-else class="pop-browse__btn-edit">
+					<div class="btn-group">
+						<button
+						    type="button"
+						    class="btn-edit__edit _btn-bg _hover01"
+							:disabled="isSaving"
+							@click="saveTask"
+						>
+							{{ isSaving ? 'Сохраняем…' : 'Сохранить' }}
+						</button>
+
+						<button
+						    type="button"
+						    class="btn-edit__edit _btn-bor _hover03"
+							@click="cancelEditing"
+						>
+							Отменить
+						</button>
+
+						<button
+						    type="button"
+						    class="btn-edit__close _btn-bg _hover01"
+							@click="closeModal"
+						>
+						    Закрыть
+						</button>
+					</div>
+				</div>
+
 			</div>
+		</div>
+	</div>
+  </div>
 </template>
 
 <style scoped>
@@ -516,6 +669,30 @@ color: #000000;
 }
 ._hover03:hover a {
   color: #FFFFFF;
+}
+
+.task-select,
+.task-date-input {
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #d4dbe5;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+}
+.task-edit-input {
+  max-width: 100%;
+  border: 1px solid #d4dbe5;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+}
+.task-message,
+.task-error {
+  padding: 24px;
+}
+.task-error {
+  color: #c0392b;
 }
 @media screen and (max-width: 660px) {
 .pop-browse {

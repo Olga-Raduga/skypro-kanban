@@ -1,7 +1,19 @@
 <script setup>
- import { onMounted, onUnmounted, ref } from 'vue'
+ import { computed, inject, onMounted, ref } from 'vue'
  import TaskColumn from './TaskColumn.vue'
- import { tasks } from '../data.js'
+ import { TASKS_KEY } from '../injectionKeys.js'
+
+ const taskStore = inject(TASKS_KEY)
+if (!taskStore) {
+  throw new Error('Не удалось получить данные задач')
+}
+
+const {
+  tasks,
+  isTasksLoading,
+  tasksError: loadError,
+  loadTasks,
+} = taskStore
 
 const columnTitles = [
   'Без статуса',
@@ -10,17 +22,25 @@ const columnTitles = [
   'Тестирование',
   'Готово',
 ]
-  const isLoading = ref(true)
-  let loadingTimer
-  onMounted(() => {
-    loadingTimer = setTimeout(() => {
-      isLoading.value = false
-      }, 1500)
-  })
-  onUnmounted(() => {
-clearTimeout(loadingTimer)
-})
 
+const isFirstLoad = ref(true)
+
+  const isLoading = computed(
+  () => isTasksLoading.value || isFirstLoad.value
+)
+async function refreshTasks() {
+  try {
+    await loadTasks()
+  } catch {
+    // Ошибка уже сохранена в tasksError и отображается в шаблоне.
+  } finally {
+    isFirstLoad.value = false
+  }
+}
+onMounted(refreshTasks)
+defineExpose({
+  loadTasks: refreshTasks,
+})
 </script>
 
 <template>
@@ -32,16 +52,28 @@ clearTimeout(loadingTimer)
           <span class="loader__spinner" aria-hidden="true"></span>
           <span class="loader__text">Данные загружаются</span>
         </div>
-        <!-- Сценарий 2: загрузка закончилась, но задач нет -->
+        <!-- Сценарий 2: API вернул ошибку -->
+        <div
+        v-else-if="loadError"
+        class="empty-state"
+        role="alert"
+        >
+          <p>{{ loadError }}</p>
+          <button type="button" @click="refreshTasks">
+            Повторить
+          </button>
+        </div>
+        <!-- Сценарий 3: загрузка закончилась, но задач нет -->
         <div v-else-if="tasks.length === 0" class="empty-state">
          Задач нет
         </div>
-        <!-- Сценарий 3: загрузка закончилась и задачи есть -->
+        <!-- Сценарий 4: загрузка закончилась и задачи есть -->
         <div v-else class="main__content">
         <TaskColumn v-for="title in columnTitles"
          :key="title"
          :title="title"
-         :tasks="tasks.filter((task) => task.status === title)" />
+         :tasks="tasks.filter((task) => task.status === title)"
+        />
        </div>
       </div>
     </div>

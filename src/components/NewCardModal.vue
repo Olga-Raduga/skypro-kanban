@@ -1,128 +1,284 @@
 <script setup>
+import { computed, inject, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { topicThemes } from '../data.js'
+import { TASKS_KEY } from '../injectionKeys.js'
+
+const taskStore = inject(TASKS_KEY)
+if (!taskStore) {
+  throw new Error('Не удалось получить данные задач')
+}
+const { createTask: saveTask, loadTasks } = taskStore
+const router = useRouter()
+
+async function closeModal() {
+  await router.replace({ name: 'home' })
+}
+
 const topics = Object.keys(topicThemes)
-const getTopicStyle = (topic) => {
-return topicThemes[topic]
+const selectedTopic = ref(topics[0] ?? 'Web Design')
+
+const title = ref('')
+const description = ref('')
+const isSaving = ref(false)
+const errorMessage = ref('')
+
+const getTopicStyle = (topic) =>
+ topicThemes[topic] ?? {}
+
+
+function toInputDate(value) {
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+// Формат, который уже показывается на карточке: дд.мм.гг
+function toTaskDate(value) {
+  const [year, month, day] = value.split('-')
+  return `${day}.${month}.${year.slice(-2)}`
+}
+
+function toApiDate(value) {
+  if (!value) {
+    return new Date().toISOString()
+  }
+  const [year, month, day] = value.split('-').map(Number)
+  // Полдень помогает избежать сдвига даты из-за часового пояса
+  return new Date(year, month - 1, day, 12).toISOString()
+}
+
+const date = ref(toInputDate(new Date()))
+const visibleMonth = ref(
+  new Date(new Date().getFullYear(), new Date().getMonth(), 1, 12)
+)
+const weekDays = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
+const calendarMonth = computed(() => {
+  const month = new Intl.DateTimeFormat('ru-RU', {
+    month: 'long',
+    year: 'numeric',
+  }).format(visibleMonth.value)
+  return month.charAt(0).toLocaleUpperCase('ru-RU') + month.slice(1)
+})
+const calendarDays = computed(() => {
+  const year = visibleMonth.value.getFullYear()
+  const month = visibleMonth.value.getMonth()
+  const firstDay = new Date(year, month, 1, 12)
+  const mondayOffset = (firstDay.getDay() + 6) % 7
+  const firstCalendarDay = new Date(year, month, 1 - mondayOffset, 12)
+  const today = toInputDate(new Date())
+  return Array.from({ length: 42 }, (_, index) => {
+    const calendarDate = new Date(
+      firstCalendarDay.getFullYear(),
+      firstCalendarDay.getMonth(),
+      firstCalendarDay.getDate() + index,
+      12
+    )
+    const value = toInputDate(calendarDate)
+    return {
+      value,
+      date: calendarDate,
+      day: calendarDate.getDate(),
+      inCurrentMonth:
+        calendarDate.getMonth() === month &&
+        calendarDate.getFullYear() === year,
+      isWeekend: calendarDate.getDay() === 0 || calendarDate.getDay() === 6,
+      isToday: value === today,
+      isSelected: value === date.value,
+    }
+  })
+})
+function changeCalendarMonth(amount) {
+  visibleMonth.value = new Date(
+    visibleMonth.value.getFullYear(),
+    visibleMonth.value.getMonth() + amount,
+    1,
+    12
+  )
+}
+function selectCalendarDate(day) {
+  date.value = day.value
+  visibleMonth.value = new Date(
+    day.date.getFullYear(),
+    day.date.getMonth(),
+    1,
+    12
+  )
+}
+
+async function refreshTasksAfterCreate() {
+  try {
+    await loadTasks()
+  } catch {
+    // Ошибка загрузки списка записана в общий tasksError.
+  }
+}
+async function createTask() {
+  if (!title.value.trim()) {
+    errorMessage.value = 'Введите название задачи.'
+    return
+  }
+  isSaving.value = true
+  errorMessage.value = ''
+  try {
+    await saveTask({
+      title: title.value.trim(),
+      description: description.value.trim(),
+      topic: selectedTopic.value,
+      status: 'Без статуса',
+      date: toApiDate(date.value),
+    })
+    title.value = ''
+    description.value = ''
+    
+  await refreshTasksAfterCreate()
+    await closeModal()
+  } catch (error) {
+    errorMessage.value =
+      error.message || 'Не удалось создать задачу.'
+  } finally {
+    isSaving.value = false
+  }
 }
 </script>
 
 <template>
-			<div class="pop-new-card" id="popNewCard">
-				<div class="pop-new-card__container">
-					<div class="pop-new-card__block">
-						<div class="pop-new-card__content">
-							<h3 class="pop-new-card__ttl">Создание задачи</h3>
-							<RouterLink
-                              to="/"
-                              class="pop-new-card__close"
-                              aria-label="Закрыть"
-                            >
-                              ×
-                            </RouterLink>
-							<div class="pop-new-card__wrap">
-								<form class="pop-new-card__form form-new" id="formNewCard" action="#">
-									<div class="form-new__block">
-										<label for="formTitle" class="subttl">Название задачи</label>
-										<input class="form-new__input" type="text" name="name" id="formTitle" placeholder="Введите название задачи..." autofocus>
-									</div>
-									<div class="form-new__block">
-										<label for="textArea" class="subttl">Описание задачи</label>
-										<textarea class="form-new__area" name="text" id="textArea"  placeholder="Введите описание задачи..."></textarea>
-									</div>
-								</form>
-								<div class="pop-new-card__calendar calendar">
-									<p class="calendar__ttl subttl">Даты</p>									
+	<div class="pop-new-card" id="popNewCard">
+		<div class="pop-new-card__container">
+			<div class="pop-new-card__block">
+				<div class="pop-new-card__content">
+					<h3 class="pop-new-card__ttl">Создание задачи</h3>
+						<RouterLink
+                            to="/"
+                            class="pop-new-card__close"
+                            aria-label="Закрыть"
+							@click.prevent="closeModal"
+                        >
+                            ×
+                        </RouterLink>
+					<div class="pop-new-card__wrap">
+						<form class="pop-new-card__form form-new" id="formNewCard" action="#">
+							<div class="form-new__block">
+								<label for="formTitle" class="subttl">Название задачи</label>
+
+									<input
+										v-model.trim="title"
+										class="form-new__input"
+										type="text"
+										name="name"
+										id="formTitle"
+										placeholder="Введите название задачи..."
+										autofocus
+									/>
+							</div>
+							<div class="form-new__block">
+								<label for="textArea" class="subttl">Описание задачи</label>
+									<textarea
+										v-model.trim="description"
+										class="form-new__area"
+										name="text"
+										id="textArea"
+										placeholder="Введите описание задачи..."
+									>
+								    </textarea>
+							</div>
+						</form>
+							<div class="pop-new-card__calendar calendar">
+								<p class="calendar__ttl subttl">Даты</p>
 									<div class="calendar__block">
 										<div class="calendar__nav">
-											<div class="calendar__month">Сентябрь 2023</div>
+										    <div class="calendar__month">{{ calendarMonth }}</div>
 											<div class="nav__actions">
-												<div class="nav__action" data-action="prev">
-													<svg xmlns="http://www.w3.org/2000/svg" width="6" height="11" viewBox="0 0 6 11">
-														<path d="M5.72945 1.95273C6.09018 1.62041 6.09018 1.0833 5.72945 0.750969C5.36622 0.416344 4.7754 0.416344 4.41218 0.750969L0.528487 4.32883C-0.176162 4.97799 -0.176162 6.02201 0.528487 6.67117L4.41217 10.249C4.7754 10.5837 5.36622 10.5837 5.72945 10.249C6.09018 9.9167 6.09018 9.37959 5.72945 9.04727L1.87897 5.5L5.72945 1.95273Z" />
-													</svg>
-												</div>
-												<div class="nav__action" data-action="next">
-													<svg xmlns="http://www.w3.org/2000/svg" width="6" height="11" viewBox="0 0 6 11">
-														<path d="M0.27055 9.04727C-0.0901833 9.37959 -0.0901832 9.9167 0.27055 10.249C0.633779 10.5837 1.2246 10.5837 1.58783 10.249L5.47151 6.67117C6.17616 6.02201 6.17616 4.97799 5.47151 4.32883L1.58782 0.75097C1.2246 0.416344 0.633778 0.416344 0.270549 0.75097C-0.0901831 1.0833 -0.090184 1.62041 0.270549 1.95273L4.12103 5.5L0.27055 9.04727Z" />
-													</svg>
-												</div>
+												<button
+                                                    type="button"
+                                                    class="nav__action"
+                                                    aria-label="Предыдущий месяц"
+                                                    @click="changeCalendarMonth(-1)"
+                                                >
+                                                    ‹
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="nav__action"
+                                                    aria-label="Следующий месяц"
+                                                    @click="changeCalendarMonth(1)"
+                                                >
+                                                ›
+                                                </button>
 											</div>
 										</div>
 										<div class="calendar__content">
 											<div class="calendar__days-names">
-												<div class="calendar__day-name">пн</div>
-												<div class="calendar__day-name">вт</div>
-												<div class="calendar__day-name">ср</div>
-												<div class="calendar__day-name">чт</div>
-												<div class="calendar__day-name">пт</div>
-												<div class="calendar__day-name -weekend-">сб</div>
-												<div class="calendar__day-name -weekend-">вс</div>
+												<div
+                                                    v-for="(day, index) in weekDays"
+                                                    :key="day"
+                                                    class="calendar__day-name"
+                                                    :class="{ '-weekend-': index > 4 }"
+                                                >
+                                                    {{ day }}
+                                                </div>
 											</div>
-											<div class="calendar__cells">
-												<div class="calendar__cell _other-month">28</div>
-												<div class="calendar__cell _other-month">29</div>
-												<div class="calendar__cell _other-month">30</div>
-												<div class="calendar__cell _cell-day">31</div>
-												<div class="calendar__cell _cell-day">1</div>
-												<div class="calendar__cell _cell-day _weekend">2</div>
-												<div class="calendar__cell _cell-day _weekend">3</div>
-												<div class="calendar__cell _cell-day">4</div>
-												<div class="calendar__cell _cell-day">5</div>
-												<div class="calendar__cell _cell-day ">6</div>
-												<div class="calendar__cell _cell-day">7</div>
-												<div class="calendar__cell _cell-day _current">8</div>
-												<div class="calendar__cell _cell-day _weekend">9</div>
-												<div class="calendar__cell _cell-day _weekend">10</div>
-												<div class="calendar__cell _cell-day">11</div>
-												<div class="calendar__cell _cell-day">12</div>
-												<div class="calendar__cell _cell-day">13</div>
-												<div class="calendar__cell _cell-day">14</div>
-												<div class="calendar__cell _cell-day">15</div>
-												<div class="calendar__cell _cell-day _weekend">16</div>
-												<div class="calendar__cell _cell-day _weekend">17</div>
-												<div class="calendar__cell _cell-day">18</div>
-												<div class="calendar__cell _cell-day">19</div>
-												<div class="calendar__cell _cell-day">20</div>
-												<div class="calendar__cell _cell-day">21</div>
-												<div class="calendar__cell _cell-day">22</div>
-												<div class="calendar__cell _cell-day _weekend">23</div>
-												<div class="calendar__cell _cell-day _weekend">24</div>
-												<div class="calendar__cell _cell-day">25</div>
-												<div class="calendar__cell _cell-day">26</div>
-												<div class="calendar__cell _cell-day">27</div>
-												<div class="calendar__cell _cell-day">28</div>
-												<div class="calendar__cell _cell-day">29</div>
-												<div class="calendar__cell _cell-day _weekend">30</div>
-												<div class="calendar__cell _other-month _weekend">1</div>
+											<div class="calendar__cells">												
+												<button
+                                                    v-for="day in calendarDays"
+                                                    :key="day.value"
+                                                    type="button"
+                                                    class="calendar__cell _cell-day"
+                                                    :class="{
+                                                        '_other-month': !day.inCurrentMonth,
+                                                        _weekend: day.isWeekend,
+                                                        _current: day.isToday,
+                                                        '_active-day': day.isSelected,
+                                                    }"
+                                                    :aria-pressed="day.isSelected"
+                                                    @click="selectCalendarDate(day)"
+                                                >
+                                                    {{ day.day }}
+                                                </button>
 											</div>
-										</div>
-										
-										<input type="hidden" id="datepick_value" value="08.09.2023">
+										</div>										
 										<div class="calendar__period">
-											<p class="calendar__p date-end">Выберите срок исполнения <span class="date-control"></span>.</p>
+										    <p class="calendar__p date-end">Выберите срок исполнения <span class="date-control">{{ toTaskDate(date) }}</span>.</p>
 										</div>
 									</div>
-								</div>
 							</div>
+					</div>
 							<div class="pop-new-card__categories categories">
-								<p class="categories__p subttl">Категория</p>
+							  <p class="categories__p subttl">Категория</p>
 								<div class="categories__themes">
-									<div
-									v-for="(topic, index) in topics"
+								  <div
+								    v-for="topic in topics"
                                     :key="topic"
-									class="categories__theme"
-									:class="{ '_active-category': index === 0 }"
+                                    class="categories__theme"
+								    :class="{ '_active-category': selectedTopic === topic }"
                                     :style="getTopicStyle(topic)"
-                                    >
-										<p>{{ topic }}</p>
-									</div>
+                                    role="button"
+                                    tabindex="0"
+                                    @click="selectedTopic = topic"
+                                    @keydown.enter="selectedTopic = topic"
+                                    @keydown.space.prevent="selectedTopic = topic"
+								  >
+								    <p>{{ topic }}</p>
+								  </div>
 								</div>
 							</div>
-							<button class="form-new__create _hover01" id="btnCreate">Создать задачу</button>
 						</div>
+						    <p v-if="errorMessage" class="auth-error" role="alert">
+                              {{ errorMessage }}
+                            </p>
+							<button
+							  type="button"
+							  class="form-new__create _hover01"
+							  id="btnCreate"
+							  :disabled="isSaving"
+                              @click="createTask"
+                            >
+                              {{ isSaving ? 'Создаём…' : 'Создать задачу' }}
+                            </button>
 					</div>
 				</div>
 			</div>
+
 </template>
 
 <style scoped>
@@ -286,6 +442,13 @@ display: flex;
 align-items: center;
 justify-content: center;
 cursor: pointer;
+padding: 0;
+  border: 0;
+  background: transparent;
+  color: #94a6be;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
 }
 .nav__action svg {
 fill: #94a6be;
@@ -326,9 +489,12 @@ cursor: pointer;
 font-size: 10px;
 line-height: 1;
 letter-spacing: -0.2px;
+border: 0;
+  background: transparent;
+  font-family: inherit;
 }
 .calendar__cell._other-month {
-opacity: 0;
+opacity: 0.35;
 }
 .calendar__cell._cell-day:hover {
 background-color: #eaEEF6;
