@@ -43,7 +43,11 @@ const isEditing = ref(false)
 const errorMessage = ref('')
 
 function getTopicStyle(value) {
-  return topicThemes[value] ?? {}
+  const topic = value === 'Web Desing' ? 'Web Design' : value
+  return topicThemes[topic] ?? topicThemes['Web Design'] ?? {}
+}
+function getTopicLabel(value) {
+  return value === 'Web Desing' ? 'Web Design' : value
 }
 function toDateInput(value) {
   const date = new Date(value)
@@ -52,6 +56,67 @@ function toDateInput(value) {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+const visibleMonth = ref(
+  new Date(new Date().getFullYear(), new Date().getMonth(), 1, 12)
+)
+const weekDays = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
+const calendarMonth = computed(() => {
+  const month = new Intl.DateTimeFormat('ru-RU', {
+    month: 'long',
+    year: 'numeric',
+  }).format(visibleMonth.value)
+  return month.charAt(0).toLocaleUpperCase('ru-RU') + month.slice(1)
+})
+const calendarDays = computed(() => {
+  const year = visibleMonth.value.getFullYear()
+  const month = visibleMonth.value.getMonth()
+  const firstDay = new Date(year, month, 1, 12)
+  const mondayOffset = (firstDay.getDay() + 6) % 7
+  const firstCalendarDay = new Date(year, month, 1 - mondayOffset, 12)
+  const today = toDateInput(new Date())
+  return Array.from({ length: 42 }, (_, index) => {
+    const calendarDate = new Date(
+      firstCalendarDay.getFullYear(),
+      firstCalendarDay.getMonth(),
+      firstCalendarDay.getDate() + index,
+      12
+    )
+    const value = toDateInput(calendarDate)
+    return {
+      value,
+      date: calendarDate,
+      day: calendarDate.getDate(),
+      inCurrentMonth:
+        calendarDate.getMonth() === month &&
+        calendarDate.getFullYear() === year,
+      isWeekend:
+        calendarDate.getDay() === 0 || calendarDate.getDay() === 6,
+      isToday: value === today,
+      isSelected: value === dueDate.value,
+    }
+  })
+})
+function changeCalendarMonth(amount) {
+  visibleMonth.value = new Date(
+    visibleMonth.value.getFullYear(),
+    visibleMonth.value.getMonth() + amount,
+    1,
+    12
+  )
+}
+function selectCalendarDate(day) {
+  dueDate.value = day.value
+  visibleMonth.value = new Date(
+    day.date.getFullYear(),
+    day.date.getMonth(),
+    1,
+    12
+  )
+}
+function formatInputDate(value) {
+  if (!value) return 'Срок не указан'
+  return value.split('-').reverse().join('.')
 }
 function toApiDate(value) {
   if (!value) {
@@ -68,11 +133,20 @@ const displayDate = computed(() => {
 })
 function fillForm(source) {
   title.value = source.title ?? ''
-  topic.value = source.topic ?? topics[0]
+  topic.value = topicThemes[source.topic] ? source.topic : topics[0]
   status.value = source.status ?? statuses[0]
   description.value = source.description ?? ''
   dueDate.value = toDateInput(source.date)
 }
+const selectedDate = dueDate.value
+  ? new Date(`${dueDate.value}T12:00:00`)
+  : new Date()
+visibleMonth.value = new Date(
+  selectedDate.getFullYear(),
+  selectedDate.getMonth(),
+  1,
+  12
+)
 async function loadTask(id) {
   if (!id) {
     errorMessage.value = 'Не указан ID задачи.'
@@ -184,13 +258,14 @@ function closeModal() {
 						class="categories__theme theme-top _active-category"
 						:style="getTopicStyle(task.topic)"
 					>
-						<p>{{ task.topic }}</p>
+						<p>{{ getTopicLabel(task.topic) }}</p>
 					</div>
 
 					<select
                         v-else
                         v-model="topic"
-                        class="task-select"
+                        class="task-select task-topic-select"
+                        :style="getTopicStyle(topic)"
                         aria-label="Категория задачи"
                     >
                         <option v-for="item in topics" :key="item" :value="item">
@@ -207,16 +282,20 @@ function closeModal() {
 							<p>{{ task.status }}</p>
 						</div>
 
-						<select
-                            v-else
-                            v-model="status"
-                            class="task-select"
-                            aria-label="Статус задачи"
-                        >
-                            <option v-for="item in statuses" :key="item" :value="item">
-                                {{ item }}
-                            </option>
-                        </select>
+						<template v-else>
+              <button
+                v-for="item in statuses"
+                :key="item"
+                type="button"
+                class="status__theme"
+                :class="{ _gray: status === item }"
+                :aria-pressed="status === item"
+                :disabled="isSaving"
+                @click="status = item"
+              >
+                {{ item }}
+              </button>
+            </template>
 					</div>
 				</div>
 
@@ -238,20 +317,76 @@ function closeModal() {
 					</form>
 
 					<div class="calendar">
-						<p class="calendar__ttl subttl">Срок исполнения</p>
+						<p class="calendar__ttl subttl">Даты</p>
 
-						    <p v-if="!isEditing" class="calendar__p">
-								{{ displayDate || 'Срок не указан' }}
-							</p>
+						    
 
-							<input
-                                v-else
-                                v-model="dueDate"
-                                class="task-date-input"
-                                type="date"
-                                aria-label="Срок исполнения"
-                            />
+							
+    <div class="calendar__block">
+      <div class="calendar__nav">
+        <div class="calendar__month">{{ calendarMonth }}</div>
+        <div class="nav__actions">
+          <button
+            type="button"
+            class="nav__action"
+            aria-label="Предыдущий месяц"
+            @click="changeCalendarMonth(-1)"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            class="nav__action"
+            aria-label="Следующий месяц"
+            @click="changeCalendarMonth(1)"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+      <div class="calendar__content">
+        <div class="calendar__days-names">
+          <div
+            v-for="(day, index) in weekDays"
+            :key="day"
+            class="calendar__day-name"
+            :class="{ '-weekend-': index > 4 }"
+          >
+            {{ day }}
+          </div>
+        </div>
+        <div class="calendar__cells">
+          <button
+            v-for="day in calendarDays"
+            :key="day.value"
+            type="button"
+            class="calendar__cell _cell-day"
+            :class="{
+              '_other-month': !day.inCurrentMonth,
+              _weekend: day.isWeekend,
+              _current: day.isToday,
+              '_active-day': day.isSelected,
+            }"
+            :aria-pressed="day.isSelected"
+            :disabled="!isEditing"
+            @click="selectCalendarDate(day)"
+          >
+            {{ day.day }}
+          </button>
+        </div>
+      </div>
+      <div class="calendar__period">
+        <p class="calendar__p">
+          Срок исполнения:
+          <span>{{ formatInputDate(dueDate) }}</span>
+        </p>
+      </div>
+    </div>
+  
 					</div>
+
+
+
 				</div>
 
 				<div v-if="!isEditing" class="pop-browse__btn-browse ">
@@ -345,6 +480,8 @@ padding: 40px 30px 38px;
 border: 0.7px solid #d4dbe5;
 border-radius: 10px;
 background-color: #ffffff;
+max-height: calc(100vh - 32px);
+overflow-y: auto;
 }
 .pop-browse__content {
 display: block;
@@ -437,23 +574,34 @@ font-weight: 400;
 /* Статус задачи */
 .status {
 margin-bottom: 11px;
+display: flex;
+align-items: center;
+gap: 12px;
+flex-wrap: wrap;
 }
 .status__p {
-margin-bottom: 14px;
+margin: 0;
+white-space: nowrap;
+flex: 0 0 auto;
 }
 .status__themes {
 display: flex;
-flex-wrap: wrap;
-align-items: flex-start;
-justify-content: flex-start;
+flex-wrap: nowrap;
+align-items: center;
 gap: 7px;
+
 }
 .status__theme {
-padding: 10px 14px;
+flex: 0 0 auto;
+padding: 8px 12px;
 border: 0.7px solid rgba(148, 166, 190, 0.4);
 border-radius: 24px;
+background: transparent;
 color: #94a6be;
+font: inherit;
 font-size: 14px;
+white-space: nowrap;
+cursor: pointer;
 }
 .status__theme._gray {
 border-color: transparent;
@@ -475,6 +623,11 @@ flex-wrap: wrap;
 align-items: flex-start;
 justify-content: space-between;
 gap: 10px;
+}
+.pop-browse__ttl.task-edit-input {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 24px;
 }
 .btn-group {
 display: flex;
@@ -583,6 +736,13 @@ display: flex;
 align-items: center;
 justify-content: center;
 cursor: pointer;
+padding: 0;
+border: 0;
+background: transparent;
+color: #94a6be;
+font: inherit;
+font-size: 20px;
+line-height: 1;
 }
 .nav__action svg {
 fill: #94a6be;
@@ -619,9 +779,13 @@ border-radius: 50%;
 color: #94a6be;
 cursor: pointer;
 font-size: 10px;
+padding: 0;
+border: 0;
+background: transparent;
+font-family: inherit;
 }
 .calendar__cell._other-month {
-opacity: 0;
+opacity: 0.35;
 }
 .calendar__cell._cell-day:hover {
 background-color: #eaEEF6;
@@ -686,6 +850,12 @@ color: #000000;
   border-radius: 6px;
   background: #fff;
   font: inherit;
+  outline: none;
+  border: none; 
+}
+.task-edit-input:focus {
+  outline: none;
+  border: none;
 }
 .task-message,
 .task-error {
@@ -693,6 +863,15 @@ color: #000000;
 }
 .task-error {
   color: #c0392b;
+}
+.task-topic-select {
+  min-height: 30px;
+  border: 0;
+  border-radius: 24px;
+  padding: 5px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
 }
 @media screen and (max-width: 660px) {
 .pop-browse {

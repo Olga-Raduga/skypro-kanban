@@ -24,7 +24,7 @@ const isSaving = ref(false)
 const errorMessage = ref('')
 
 const getTopicStyle = (topic) =>
- topicThemes[topic] ?? {}
+ topicThemes[topic] ?? topicThemes['Web Design'] ?? {}
 
 
 function toInputDate(value) {
@@ -443,12 +443,12 @@ align-items: center;
 justify-content: center;
 cursor: pointer;
 padding: 0;
-  border: 0;
-  background: transparent;
-  color: #94a6be;
-  font: inherit;
-  font-size: 20px;
-  line-height: 1;
+border: 0;
+background: transparent;
+color: #94a6be;
+font: inherit;
+font-size: 20px;
+line-height: 1;
 }
 .nav__action svg {
 fill: #94a6be;

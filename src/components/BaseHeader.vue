@@ -11,6 +11,15 @@ if (!auth) {
 const isUserMenuOpen = ref(false)
 const router = useRouter()
 
+const displayName = computed(
+  () =>
+    auth.currentUser.value?.name ||
+    auth.currentUser.value?.login ||
+    'Пользователь'
+)
+const displayEmail = computed(
+  () => auth.currentUser.value?.login || ''
+)
 </script>
 <template>
   <header class="header">
@@ -35,15 +44,15 @@ const router = useRouter()
            type="button" class="header__user _hover02"
               :aria-expanded="isUserMenuOpen"
               aria-controls="user-set-target"
-              @click="isUserMenuOpen = !isUserMenuOpen">Ivan Ivanov
+              @click="isUserMenuOpen = !isUserMenuOpen">{{ displayName }}
           </button>
 
           <div
             v-if="isUserMenuOpen"
             id="user-set-target" class="header__pop-user-set">
 
-              <p class="pop-user-set__name">Ivan Ivanov</p>
-              <p class="pop-user-set__mail">ivan.ivanov@gmail.com</p>
+              <p class="pop-user-set__name">{{ displayName }}</p>
+              <p class="pop-user-set__mail">{{ displayEmail }}</p>
             <div class="pop-user-set__theme">
               <p>Темная тема</p>
               <input type="checkbox" name="theme"
