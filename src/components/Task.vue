@@ -24,6 +24,17 @@
     required: true,
    },
  })
+ const formattedDate = computed(() => {
+  const taskDate = new Date(props.date)
+  if (Number.isNaN(taskDate.getTime())) {
+    return ''
+  }
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+  }).format(taskDate)
+})
  const topicStyle = computed(() => {
 return (
 topicThemes[props.topic] ||
@@ -72,7 +83,7 @@ topicThemes['Web Design']
               stroke-linejoin="round" 
             />
           </svg>
-          <p>{{ date }}</p>
+          <p>{{ formattedDate }}</p>
         </div>
       </div>
     </article>
