@@ -8,7 +8,7 @@ const taskStore = inject(TASKS_KEY)
 if (!taskStore) {
   throw new Error('Не удалось получить данные задач')
 }
-const { createTask: saveTask, loadTasks } = taskStore
+const { createTask: saveTask } = taskStore
 const router = useRouter()
 
 async function closeModal() {
@@ -90,8 +90,8 @@ const calendarDays = computed(() => {
 })
 function changeCalendarMonth(amount) {
   visibleMonth.value = new Date(
-    visibleMonth.value.getFullYear(),
-    visibleMonth.value.getMonth() + amount,
+  visibleMonth.value.getFullYear(),
+  visibleMonth.value.getMonth() + amount,
     1,
     12
   )
@@ -104,14 +104,6 @@ function selectCalendarDate(day) {
     1,
     12
   )
-}
-
-async function refreshTasksAfterCreate() {
-  try {
-    await loadTasks()
-  } catch {
-    // Ошибка загрузки списка записана в общий tasksError.
-  }
 }
 async function createTask() {
   if (!title.value.trim()) {
@@ -130,12 +122,18 @@ async function createTask() {
     })
     title.value = ''
     description.value = ''
-    
-  await refreshTasksAfterCreate()
     await closeModal()
   } catch (error) {
-    errorMessage.value =
-      error.message || 'Не удалось создать задачу.'
+    const msg = error.message || ''
+    
+    // Проверяем текст ошибки от сервера и переводим на русский
+    if (msg.includes('"description" is not allowed to be empty')) {
+      errorMessage.value = 'Описание задачи не должно быть пустым.'
+    } else if (msg.includes('"title" is not allowed to be empty')) {
+      errorMessage.value = 'Название задачи не должно быть пустым.'
+    } else {
+      errorMessage.value = msg || 'Не удалось создать задачу.'
+	  }
   } finally {
     isSaving.value = false
   }
