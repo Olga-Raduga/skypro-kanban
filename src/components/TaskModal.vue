@@ -243,7 +243,7 @@ function closeModal() {
 				<div class="pop-browse__top-block">
 					<h3 v-if="!isEditing"
 						class="pop-browse__ttl">
-						{{ task?.title }} (ID: {{ cardId }})
+						{{ task?.title }}
 					</h3>
 
 					<input

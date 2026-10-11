@@ -50,9 +50,27 @@ export async function createTask(task) {
     const data = await createTaskRequest(task)
     if (Array.isArray(data.tasks)) {
         tasks.value = normalizeTasks(data.tasks)
+        return data
+    }
+
+    const createdTask = data.task ?? data
+    const hasId =
+        createdTask &&
+        (createdTask._id != null || createdTask.id != null)
+    if (!hasId) {
+        throw new Error('Сервер не вернул данные созданной задачи.')
+    }
+    const normalizedTask = normalizeTask(createdTask)
+
+    const alreadyExists = tasks.value.some(
+        (item) => item.id === normalizedTask.id
+    )
+    if (!alreadyExists) {
+        tasks.value = [...tasks.value, normalizedTask]
     }
     return data
 }
+
 export async function updateTask(id, task) {
     const data = await updateTaskRequest(id, task)
     if (Array.isArray(data.tasks)) {
