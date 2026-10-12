@@ -65,7 +65,7 @@ defineExpose({
         </div>
         <!-- Сценарий 3: загрузка закончилась, но задач нет -->
         <div v-else-if="tasks.length === 0" class="empty-state">
-         Задач нет
+         Новых задач нет
         </div>
         <!-- Сценарий 4: загрузка закончилась и задачи есть -->
         <div v-else class="main__content">
@@ -95,26 +95,35 @@ display: flex;
 width: 100%;
 }
 .loader {
-min-height: 400px;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-gap: 16px;
-color: #94a6be;
-font-size: 18px;
-font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 300px;
+  width: 100%;
 }
+
 .loader__spinner {
-width: 36px;
-height: 36px;
-border: 4px solid rgba(86, 94, 239, 0.2);
-border-top-color: #565eef;
-border-radius: 50%;
-animation: loader-rotate 0.8s linear infinite;
+  width: 56px;
+  height: 56px;
+  border: 5px solid #eaedf6;
+  border-top-color: #565eef; 
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
+
 .loader__text {
-animation: loader-pulse 1.3s ease-in-out infinite;
+  color: #94a6be;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .empty-state {
 min-height: 400px;
