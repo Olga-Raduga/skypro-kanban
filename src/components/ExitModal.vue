@@ -1,10 +1,12 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { clearSession } from '../services/session.js'
 
 const router = useRouter()
 
+
 const logout = () => {
-  localStorage.removeItem('isAuthenticated') // Стираем статус авторизации
+  clearSession()
   router.replace('/login') // Перенаправляем на страницу входа
 }
 
