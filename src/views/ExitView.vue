@@ -23,12 +23,8 @@ function stay() {
       <h1>Выйти из аккаунта?</h1>
 
       <div class="pop-exit-actions">
-        <button type="button" @click="logout">
-          Да, выйти
-        </button>
-        <button type="button" @click="stay">
-          Нет, остаться
-        </button>
+        <button type="button" @click="logout">Да, выйти</button>
+        <button type="button" @click="stay">Нет, остаться</button>
       </div>
     </section>
   </main>
@@ -78,21 +74,21 @@ function stay() {
   color: #ffffff;
 }
 @media screen and (max-width: 375px) {
-.pop-exit__block {
-padding: 50px 20px;
-}
-.pop-exit__form-group {
-display: block;
-}
-.pop-exit__exit-yes,
-.pop-exit__exit-no {
-width: 100%;
-height: 40px;
-}
-.pop-exit__exit-yes {
-margin-right: 0;
-margin-bottom: 10px;
-}
+  .pop-exit__block {
+    padding: 50px 20px;
+  }
+  .pop-exit__form-group {
+    display: block;
+  }
+  .pop-exit__exit-yes,
+  .pop-exit__exit-no {
+    width: 100%;
+    height: 40px;
+  }
+  .pop-exit__exit-yes {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
 }
 @media only screen and (max-width: 375px) {
   .pop-exit__block {

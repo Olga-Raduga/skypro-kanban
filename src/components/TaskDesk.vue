@@ -1,33 +1,20 @@
 <script setup>
- import { computed, inject, onMounted, ref } from 'vue'
- import TaskColumn from './TaskColumn.vue'
- import { TASKS_KEY } from '../injectionKeys.js'
+import { computed, inject, onMounted, ref } from 'vue'
+import TaskColumn from './TaskColumn.vue'
+import { TASKS_KEY } from '../injectionKeys.js'
 
- const taskStore = inject(TASKS_KEY)
+const taskStore = inject(TASKS_KEY)
 if (!taskStore) {
   throw new Error('Не удалось получить данные задач')
 }
 
-const {
-  tasks,
-  isTasksLoading,
-  tasksError: loadError,
-  loadTasks,
-} = taskStore
+const { tasks, isTasksLoading, tasksError: loadError, loadTasks } = taskStore
 
-const columnTitles = [
-  'Без статуса',
-  'Нужно сделать',
-  'В работе',
-  'Тестирование',
-  'Готово',
-]
+const columnTitles = ['Без статуса', 'Нужно сделать', 'В работе', 'Тестирование', 'Готово']
 
 const isFirstLoad = ref(true)
 
-  const isLoading = computed(
-  () => isTasksLoading.value || isFirstLoad.value
-)
+const isLoading = computed(() => isTasksLoading.value || isFirstLoad.value)
 async function refreshTasks() {
   try {
     await loadTasks()
@@ -53,28 +40,21 @@ defineExpose({
           <span class="loader__text">Данные загружаются</span>
         </div>
         <!-- Сценарий 2: API вернул ошибку -->
-        <div
-        v-else-if="loadError"
-        class="empty-state"
-        role="alert"
-        >
+        <div v-else-if="loadError" class="empty-state" role="alert">
           <p>{{ loadError }}</p>
-          <button type="button" @click="refreshTasks">
-            Повторить
-          </button>
+          <button type="button" @click="refreshTasks">Повторить</button>
         </div>
         <!-- Сценарий 3: загрузка закончилась, но задач нет -->
-        <div v-else-if="tasks.length === 0" class="empty-state">
-         Новых задач нет
-        </div>
+        <div v-else-if="tasks.length === 0" class="empty-state">Новых задач нет</div>
         <!-- Сценарий 4: загрузка закончилась и задачи есть -->
         <div v-else class="main__content">
-        <TaskColumn v-for="title in columnTitles"
-         :key="title"
-         :title="title"
-         :tasks="tasks.filter((task) => task.status === title)"
-        />
-       </div>
+          <TaskColumn
+            v-for="title in columnTitles"
+            :key="title"
+            :title="title"
+            :tasks="tasks.filter((task) => task.status === title)"
+          />
+        </div>
       </div>
     </div>
   </main>
@@ -82,17 +62,17 @@ defineExpose({
 
 <style scoped>
 .main {
-width: 100%;
-min-height: calc(100vh - 70px);
-background-color: #eaEEF6;
+  width: 100%;
+  min-height: calc(100vh - 70px);
+  background-color: #eaeef6;
 }
 .main__block {
-width: 100%;
-padding: 25px 0 49px;
+  width: 100%;
+  padding: 25px 0 49px;
 }
 .main__content {
-display: flex;
-width: 100%;
+  display: flex;
+  width: 100%;
 }
 .loader {
   display: flex;
@@ -108,7 +88,7 @@ width: 100%;
   width: 56px;
   height: 56px;
   border: 5px solid #eaedf6;
-  border-top-color: #565eef; 
+  border-top-color: #565eef;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -126,45 +106,43 @@ width: 100%;
   }
 }
 .empty-state {
-min-height: 400px;
-display: flex;
-align-items: center;
-justify-content: center;
-color: #94a6be;
-font-size: 20px;
-font-weight: 500;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a6be;
+  font-size: 20px;
+  font-weight: 500;
 }
 .column__title p {
-  color: #94A6BE;
+  color: #94a6be;
   font-size: 14px;
   font-weight: 600;
   line-height: 1;
   text-transform: uppercase;
 }
 @keyframes loader-rotate {
-to {
-transform: rotate(360deg);
-}
+  to {
+    transform: rotate(360deg);
+  }
 }
 @keyframes loader-pulse {
-0%,
-100% {
-opacity: 0.45;
-}
-50% {
-opacity: 1;
-}
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 @media screen and (max-width: 1200px) {
-.main__content {
-display: block;
-}
-.main__block {
-padding: 40px 0 64px;
-width: 100%;
-margin: 0 auto;
-}
-
+  .main__content {
+    display: block;
+  }
+  .main__block {
+    padding: 40px 0 64px;
+    width: 100%;
+    margin: 0 auto;
+  }
 }
 </style>
-
