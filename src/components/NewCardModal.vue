@@ -3,6 +3,10 @@ import { computed, inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { topicThemes } from '../data.js'
 import { TASKS_KEY } from '../injectionKeys.js'
+import { onClickOutside } from '@vueuse/core'
+
+const modalContent = ref(null)
+onClickOutside(modalContent, closeModal)
 
 const taskStore = inject(TASKS_KEY)
 if (!taskStore) {
@@ -132,7 +136,7 @@ async function createTask() {
 <template>
   <div class="pop-new-card" id="popNewCard">
     <div class="pop-new-card__container">
-      <div class="pop-new-card__block">
+      <div ref="modalContent" class="pop-new-card__block">
         <div class="pop-new-card__content">
           <h3 class="pop-new-card__ttl">Создание задачи</h3>
           <RouterLink

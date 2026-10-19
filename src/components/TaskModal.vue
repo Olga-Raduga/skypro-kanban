@@ -3,6 +3,10 @@ import { computed, inject, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { topicThemes } from '../data.js'
 import { TASKS_KEY } from '../injectionKeys.js'
+import { onClickOutside } from '@vueuse/core'
+
+const modalContent = ref(null)
+onClickOutside(modalContent, closeModal)
 
 const taskStore = inject(TASKS_KEY)
 if (!taskStore) {
@@ -195,7 +199,7 @@ function closeModal() {
 <template>
   <div class="pop-browse" id="popBrowse">
     <div class="pop-browse__container">
-      <div class="pop-browse__block">
+      <div ref="modalContent" class="pop-browse__block">
         <p v-if="isLoading" class="task-message" role="status">Загружаем задачу…</p>
         <p v-else-if="errorMessage && !task" class="task-error" role="alert">
           {{ errorMessage }}

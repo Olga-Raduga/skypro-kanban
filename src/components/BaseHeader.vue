@@ -47,15 +47,6 @@ const displayEmail = computed(() => auth.currentUser.value?.login || '')
           >
             Создать новую задачу
           </button>
-          <button
-            type="button"
-            class="header__user _hover02"
-            :aria-expanded="isUserMenuOpen"
-            aria-controls="user-set-target"
-            @click="isUserMenuOpen = !isUserMenuOpen"
-          >
-            {{ displayName }}
-          </button>
 
           <div ref="userMenu" class="header__user-menu">
   <button

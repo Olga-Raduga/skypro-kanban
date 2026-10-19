@@ -1,7 +1,12 @@
 <script setup>
-import { inject } from 'vue'
+import { inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AUTH_KEY } from '../injectionKeys.js'
+import { onClickOutside } from '@vueuse/core'
+
+const confirmDialog = ref(null)
+onClickOutside(confirmDialog, stay)
+
 
 const auth = inject(AUTH_KEY)
 if (!auth) {
