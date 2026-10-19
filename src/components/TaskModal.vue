@@ -440,7 +440,6 @@ function closeModal() {
 .pop-browse__content .theme-top {
   display: block;
 }
-
 .pop-browse__top-block {
   margin-bottom: 18px;
   display: flex;
@@ -463,19 +462,6 @@ function closeModal() {
   width: 100%;
   max-width: 370px;
   margin-bottom: 20px;
-}
-.pop-browse__btn-browse,
-.pop-browse__btn-edit {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-.pop-browse__btn-browse button,
-.pop-browse__btn-edit button {
-  height: 30px;
-  margin-bottom: 10px;
-  padding: 0 14px;
 }
 .pop-browse__btn-browse .btn-group button,
 .pop-browse__btn-edit .btn-group button {
@@ -584,6 +570,7 @@ function closeModal() {
   min-height: 30px;
   padding: 0 14px;
   font-size: 14px;
+  margin-bottom: 10px;
 }
 ._btn-bor,
 ._btn-bg {
