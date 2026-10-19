@@ -2,6 +2,14 @@
 import { computed, inject, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { AUTH_KEY } from '../injectionKeys.js'
+import { onClickOutside } from '@vueuse/core'
+import { useTheme } from '../composables/useTheme.js'
+
+const userMenu = ref(null)
+const { isDark, toggleTheme } = useTheme()
+onClickOutside(userMenu, () => {
+  isUserMenuOpen.value = false
+})
 
 const auth = inject(AUTH_KEY)
 if (!auth) {
@@ -49,14 +57,36 @@ const displayEmail = computed(() => auth.currentUser.value?.login || '')
             {{ displayName }}
           </button>
 
+          <div ref="userMenu" class="header__user-menu">
+  <button
+    type="button"
+    class="header__user _hover02"
+    :aria-expanded="isUserMenuOpen"
+    aria-controls="user-set-target"
+    @click="isUserMenuOpen = !isUserMenuOpen"
+  >
+    {{ displayName }}
+  </button>
+
           <div v-if="isUserMenuOpen" id="user-set-target" class="header__pop-user-set">
             <p class="pop-user-set__name">{{ displayName }}</p>
             <p class="pop-user-set__mail">{{ displayEmail }}</p>
-            <div class="pop-user-set__theme">
-              <p>Темная тема</p>
-              <input type="checkbox" name="theme" />
-            </div>
-            <button type="button" class="_hover03" @click="router.push('/exit')">Выйти</button>
+            
+            <label class="pop-user-set__theme">
+              <span>{{ isDark ? 'Тёмная тема' : 'Светлая тема' }}</span>
+              <input 
+                type="checkbox" 
+                name="theme"
+                :checked="isDark"
+                :aria-label="isDark ? 'Выключить тёмную тему' : 'Включить тёмную тему'"
+                @change="toggleTheme()" 
+              />
+            </label>
+
+            <button type="button" class="_hover03" 
+            @click="router.push('/exit')">Выйти
+            </button>
+          </div>
           </div>
         </nav>
       </div>
@@ -115,6 +145,9 @@ const displayEmail = computed(() => auth.currentUser.value?.login || '')
   color: #565eef;
   font-size: 14px;
   line-height: 20px;
+}
+.header__user-menu {
+  position: relative;
 }
 .header__user::after {
   content: '';
