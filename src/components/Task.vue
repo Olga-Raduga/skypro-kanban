@@ -39,11 +39,22 @@ const formattedDate = computed(() => {
 const topicStyle = computed(() => {
   return topicThemes[props.topic] || topicThemes['Web Design']
 })
+
+function handleDragStart(event) {
+  if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', String(props.id))
+}
+
 </script>
 
 <template>
   <div class="cards__item">
-    <article class="cards__card card">
+    <article 
+      class="cards__card card"
+      draggable="true"
+      @dragstart="handleDragStart"
+    >
       <div class="card__group">
         <div class="card__theme" :style="topicStyle">
           <p>{{ topic }}</p>

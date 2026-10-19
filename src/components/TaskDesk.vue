@@ -8,7 +8,7 @@ if (!taskStore) {
   throw new Error('Не удалось получить данные задач')
 }
 
-const { tasks, isTasksLoading, tasksError: loadError, loadTasks } = taskStore
+const { tasks, isTasksLoading, tasksError: loadError, loadTasks, updateTask } = taskStore
 
 const columnTitles = ['Без статуса', 'Нужно сделать', 'В работе', 'Тестирование', 'Готово']
 
@@ -28,6 +28,27 @@ onMounted(refreshTasks)
 defineExpose({
   loadTasks: refreshTasks,
 })
+
+const moveError = ref('')
+async function handleDropTask({ taskId, status }) {
+  moveError.value = ''
+  const task = tasks.value.find((item) => item.id === String(taskId))
+  if (!task || task.status === status) return
+  const previousStatus = task.status
+  task.status = status
+  try {
+    await updateTask(task.id, {
+      title: task.title,
+      topic: task.topic,
+      status,
+      description: task.description,
+      date: task.date,
+    })
+  } catch (error) {
+    task.status = previousStatus
+    moveError.value = error.message || 'Не удалось переместить задачу. Попробуйте ещё раз.'
+  }
+}
 </script>
 
 <template>
@@ -35,24 +56,38 @@ defineExpose({
     <div class="container">
       <div class="main__block">
         <!-- Сценарий 1: данные ещё загружаются -->
+        <div v-if="moveError" class="empty-state" role="alert">
+          {{ moveError }}
+        </div>
         <div v-if="isLoading" class="loader" aria-live="polite">
           <span class="loader__spinner" aria-hidden="true"></span>
           <span class="loader__text">Данные загружаются</span>
         </div>
+
         <!-- Сценарий 2: API вернул ошибку -->
+        <div v-if="moveError" class="empty-state" role="alert">
+          {{ moveError }}
+        </div>
         <div v-else-if="loadError" class="empty-state" role="alert">
           <p>{{ loadError }}</p>
           <button type="button" @click="refreshTasks">Повторить</button>
         </div>
         <!-- Сценарий 3: загрузка закончилась, но задач нет -->
+        <div v-if="moveError" class="empty-state" role="alert">
+          {{ moveError }}
+        </div>
         <div v-else-if="tasks.length === 0" class="empty-state">Новых задач нет</div>
         <!-- Сценарий 4: загрузка закончилась и задачи есть -->
+        <div v-if="moveError" class="empty-state" role="alert">
+          {{ moveError }}
+        </div>
         <div v-else class="main__content">
           <TaskColumn
             v-for="title in columnTitles"
             :key="title"
             :title="title"
             :tasks="tasks.filter((task) => task.status === title)"
+            @drop-task="handleDropTask"
           />
         </div>
       </div>
