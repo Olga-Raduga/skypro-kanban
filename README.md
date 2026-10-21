@@ -1,44 +1,67 @@
-# .
+# Skypro Kanban
 
-This template should help get you started developing with Vue 3 in Vite.
+Веб-приложение для ведения задач по Kanban-доске. Пользователь может зарегистрироваться или войти, создавать задачи, назначать им категорию и срок, менять статус, редактировать и удалять задачи.
 
-## Recommended IDE Setup
+## Возможности (Фичи)
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+### Основной функционал:
 
-## Recommended Browser Setup
+- **Авторизация и безопасность:** Регистрация, вход и выход из аккаунта через API. Защита главной страницы: неавторизованный пользователь автоматически перенаправляется на экран входа.Возврат на запрошенную страницу после успешного входа.
+- **Интерактивная Kanban-доска:** Колонки «Без статуса», «Нужно сделать», «В работе», «Тестирование» и «Готово».
+- **Управление задачами:** Создание задачи с названием, описанием, категорией и датой исполнения.Просмотр, детальное редактирование и удаление задач.
+- **Валидация и UX:** Валидация форм и сообщения об ошибках.(защита от пустых строк и пробелов `v-model.trim`), реактивное отображение локализованных ошибок сервера.
+- **Состояния интерфейса:** Реализована плавная анимация загрузки данных (лоадер), информативная обработка падения сервера и текстовая заглушка «Новых задач нет» при пустой доске.
+- **Страница 404:** Стилизована в общем формате приложения и содержит навигационную ссылку на главную страницу.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+### Дополнительный функционал (VueUse):
 
-## Customize configuration
+- **Смена цветовой темы:** Переключение светлой и тёмной темы с сохранением выбора в браузере.
+- **Удобные модальные окна:** Закрытие меню пользователя и диалогов кликом вне окна.
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## Технологии
 
-## Project Setup
+- **Frontend:** Vue 3 (Composition API, `<script setup>`)
+- **Routing:** Vue Router
+- **State & Utilities:** VueUse
+- **Сборщик:** Vite
+- **API:** Внешний бэкенд Skypro (`https://sky.pro`)
 
-```sh
-npm install
-```
+## Структура проекта
 
-### Compile and Hot-Reload for Development
+- `src/components/` — глобальные компоненты (шапка, доска, колонки, карточки).
+- `src/views/` — страницы доски, входа, регистрации, выхода и 404 ошибки.
+- `src/router/` — конфигурация маршрутов и глобальная защита доски (Navigation Guards).
+- `src/services/` — изолированный слой для работы с API, сессиями и задачами.
+- `src/composables/useTheme.js` — переключение темы через VueUse.
+- `src/assets/main.css` — глобальные стили, переменные и палитры тем.
+- `public/assets/` — статичные логотипы приложения и favicon.
 
-```sh
-npm run dev
-```
+## Запуск
 
-### Compile and Minify for Production
+Требуется Node.js `^22.18.0` или `>=24.12.0`.
 
-```sh
-npm run build
-```
+1. Установка всех зависимостей:
+   ```sh
+   npm install
+   ```
+2. Запуск проекта в режиме разработки (локальный сервер):
+   ```sh
+   npm run dev
+   ```
+3. Сборка проекта (production):
+   ```sh
+   npm run build
+   ```
+4. Локальный просмотр собранной production-версии:
+   ```sh
+   npm run preview
+   ```
 
-### Lint with [ESLint](https://eslint.org/)
+### Проверка качества кода:
+
+Перед отправкой изменений рекомендуется выполнить форматирование и линтинг (настроено автоматическое исправление ошибок):
 
 ```sh
 npm run lint
+npm run format
 ```
