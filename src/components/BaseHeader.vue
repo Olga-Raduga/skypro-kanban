@@ -59,25 +59,25 @@ const displayEmail = computed(() => auth.currentUser.value?.login || '')
               {{ displayName }}
             </button>
 
-          <div v-if="isUserMenuOpen" id="user-set-target" class="header__pop-user-set">
-            <p class="pop-user-set__name">{{ displayName }}</p>
-            <p class="pop-user-set__mail">{{ displayEmail }}</p>
-            
-            <label class="pop-user-set__theme">
-              <span>{{ isDark ? 'Тёмная тема' : 'Светлая тема' }}</span>
-              <input 
-                type="checkbox" 
-                name="theme"
-                :checked="isDark"
-                :aria-label="isDark ? 'Выключить тёмную тему' : 'Включить тёмную тему'"
-                @change="toggleTheme()" 
-              />
-            </label>
+            <div v-if="isUserMenuOpen" id="user-set-target" class="header__pop-user-set">
+              <p class="pop-user-set__name">{{ displayName }}</p>
+              <p class="pop-user-set__mail">{{ displayEmail }}</p>
 
-            <button type="button" class="_hover03" 
-            @click="router.push('/exit')">Выйти
-            </button>
-          </div>
+              <label class="pop-user-set__theme">
+                <span>{{ isDark ? 'Тёмная тема' : 'Светлая тема' }}</span>
+                <input
+                  type="checkbox"
+                  name="theme"
+                  :checked="isDark"
+                  :aria-label="isDark ? 'Выключить тёмную тему' : 'Включить тёмную тему'"
+                  @change="toggleTheme()"
+                />
+              </label>
+
+              <button type="button" class="pop-user-set__exit" @click="router.push('/exit')">
+                Выйти
+              </button>
+            </div>
           </div>
         </nav>
       </div>
@@ -268,16 +268,27 @@ const displayEmail = computed(() => auth.currentUser.value?.login || '')
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   width: 72px;
   height: 30px;
+  padding: 0;
   border: 1px solid #565eef;
   border-radius: 4px;
+  background: transparent;
   color: #565eef;
+  font-family: inherit;
   font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  appearance: none;
 }
 .pop-user-set__exit:hover {
   background-color: #33399b;
   color: #ffffff;
+}
+.pop-user-set__exit:focus-visible {
+  outline: 2px solid #33399b;
+  outline-offset: 2px;
 }
 @media screen and (max-width: 495px) {
   .header__btn-main-new {

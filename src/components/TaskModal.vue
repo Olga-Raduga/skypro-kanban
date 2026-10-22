@@ -35,6 +35,7 @@ const isSaving = ref(false)
 const isDeleting = ref(false)
 const isEditing = ref(false)
 const errorMessage = ref('')
+const descriptionError = ref('')
 
 function getTopicStyle(value) {
   const topic = value === 'Web Desing' ? 'Web Design' : value
@@ -156,12 +157,19 @@ function cancelEditing() {
   isEditing.value = false
 }
 async function saveTask() {
+  errorMessage.value = ''
+  descriptionError.value = ''
+
   if (!title.value.trim()) {
     errorMessage.value = 'Введите название задачи.'
     return
   }
+
+  if (!description.value.trim()) {
+    descriptionError.value = 'Введите описание задачи.'
+    return
+  }
   isSaving.value = true
-  errorMessage.value = ''
   try {
     await updateTask(cardId.value, {
       title: title.value.trim(),
@@ -278,8 +286,20 @@ function closeModal() {
                   v-model="description"
                   class="form-browse__area"
                   :readonly="!isEditing"
+                  :aria-invalid="descriptionError ? 'true' : 'false'"
+                  :aria-describedby="descriptionError ? 'description-error' : undefined"
                   placeholder="Введите описание задачи..."
+                  @input="descriptionError = ''"
                 ></textarea>
+                <p
+                  v-if="descriptionError"
+                  id="description-error"
+                  class="field-error"
+                  role="alert"
+                >
+                  {{ descriptionError }}
+                </p>
+
               </div>
             </form>
 
@@ -700,7 +720,7 @@ function closeModal() {
 }
 .calendar__cells {
   width: 182px;
-  height: 126px;
+  height: auto;
   display: flex;
   flex-wrap: wrap;
 }
@@ -800,6 +820,12 @@ function closeModal() {
 }
 .task-error {
   color: #c0392b;
+}
+.field-error {
+  margin: 8px 0 0;
+  color: #c0392b;
+  font-size: 12px;
+  line-height: 1.4;
 }
 .task-topic-select {
   min-height: 30px;
