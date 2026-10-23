@@ -3,17 +3,17 @@ import { computed, inject, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { topicThemes } from '../data.js'
 import { TASKS_KEY } from '../injectionKeys.js'
+import { onClickOutside } from '@vueuse/core'
+
+const modalContent = ref(null)
+onClickOutside(modalContent, closeModal)
 
 const taskStore = inject(TASKS_KEY)
 if (!taskStore) {
   throw new Error('Не удалось получить данные задач')
 }
 
-const {
-  deleteTask,
-  getTaskById,
-  updateTask,
-} = taskStore
+const { deleteTask, getTaskById, updateTask } = taskStore
 
 const route = useRoute()
 const router = useRouter()
@@ -21,13 +21,7 @@ const router = useRouter()
 const cardId = computed(() => String(route.params.id ?? '')) // Достаем ID карточки из ссылки
 
 const topics = Object.keys(topicThemes)
-const statuses = [
-  'Без статуса',
-  'Нужно сделать',
-  'В работе',
-  'Тестирование',
-  'Готово',
-]
+const statuses = ['Без статуса', 'Нужно сделать', 'В работе', 'Тестирование', 'Готово']
 
 const task = ref(null)
 const title = ref('')
@@ -41,6 +35,7 @@ const isSaving = ref(false)
 const isDeleting = ref(false)
 const isEditing = ref(false)
 const errorMessage = ref('')
+const descriptionError = ref('')
 
 function getTopicStyle(value) {
   const topic = value === 'Web Desing' ? 'Web Design' : value
@@ -57,9 +52,7 @@ function toDateInput(value) {
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
-const visibleMonth = ref(
-  new Date(new Date().getFullYear(), new Date().getMonth(), 1, 12)
-)
+const visibleMonth = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1, 12))
 const weekDays = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
 const calendarMonth = computed(() => {
   const month = new Intl.DateTimeFormat('ru-RU', {
@@ -80,18 +73,15 @@ const calendarDays = computed(() => {
       firstCalendarDay.getFullYear(),
       firstCalendarDay.getMonth(),
       firstCalendarDay.getDate() + index,
-      12
+      12,
     )
     const value = toDateInput(calendarDate)
     return {
       value,
       date: calendarDate,
       day: calendarDate.getDate(),
-      inCurrentMonth:
-        calendarDate.getMonth() === month &&
-        calendarDate.getFullYear() === year,
-      isWeekend:
-        calendarDate.getDay() === 0 || calendarDate.getDay() === 6,
+      inCurrentMonth: calendarDate.getMonth() === month && calendarDate.getFullYear() === year,
+      isWeekend: calendarDate.getDay() === 0 || calendarDate.getDay() === 6,
       isToday: value === today,
       isSelected: value === dueDate.value,
     }
@@ -102,17 +92,12 @@ function changeCalendarMonth(amount) {
     visibleMonth.value.getFullYear(),
     visibleMonth.value.getMonth() + amount,
     1,
-    12
+    12,
   )
 }
 function selectCalendarDate(day) {
   dueDate.value = day.value
-  visibleMonth.value = new Date(
-    day.date.getFullYear(),
-    day.date.getMonth(),
-    1,
-    12
-  )
+  visibleMonth.value = new Date(day.date.getFullYear(), day.date.getMonth(), 1, 12)
 }
 function formatInputDate(value) {
   if (!value) return 'Срок не указан'
@@ -133,15 +118,8 @@ function fillForm(source) {
   description.value = source.description ?? ''
   dueDate.value = toDateInput(source.date)
 }
-const selectedDate = dueDate.value
-  ? new Date(`${dueDate.value}T12:00:00`)
-  : new Date()
-visibleMonth.value = new Date(
-  selectedDate.getFullYear(),
-  selectedDate.getMonth(),
-  1,
-  12
-)
+const selectedDate = dueDate.value ? new Date(`${dueDate.value}T12:00:00`) : new Date()
+visibleMonth.value = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1, 12)
 async function loadTask(id) {
   if (!id) {
     errorMessage.value = 'Не указан ID задачи.'
@@ -179,12 +157,19 @@ function cancelEditing() {
   isEditing.value = false
 }
 async function saveTask() {
+  errorMessage.value = ''
+  descriptionError.value = ''
+
   if (!title.value.trim()) {
     errorMessage.value = 'Введите название задачи.'
     return
   }
+
+  if (!description.value.trim()) {
+    descriptionError.value = 'Введите описание задачи.'
+    return
+  }
   isSaving.value = true
-  errorMessage.value = ''
   try {
     await updateTask(cardId.value, {
       title: title.value.trim(),
@@ -221,266 +206,253 @@ function closeModal() {
 
 <template>
   <div class="pop-browse" id="popBrowse">
-	<div class="pop-browse__container">
-		<div class="pop-browse__block">
-			<p v-if="isLoading" class="task-message" role="status">
-              Загружаем задачу…
-            </p>
-			<p v-else-if="errorMessage && !task" class="task-error" role="alert">
-              {{ errorMessage }}
-            </p>
+    <div class="pop-browse__container">
+      <div ref="modalContent" class="pop-browse__block">
+        <p v-if="isLoading" class="task-message" role="status">Загружаем задачу…</p>
+        <p v-else-if="errorMessage && !task" class="task-error" role="alert">
+          {{ errorMessage }}
+        </p>
 
-			<div v-else-if="task" class="pop-browse__content">
-				<p v-if="errorMessage" class="task-error" role="alert">
-                  {{ errorMessage }}
+        <div v-else-if="task" class="pop-browse__content">
+          <p v-if="errorMessage" class="task-error" role="alert">
+            {{ errorMessage }}
+          </p>
+
+          <div class="pop-browse__top-block">
+            <h3 v-if="!isEditing" class="pop-browse__ttl">
+              {{ task?.title }}
+            </h3>
+
+            <input
+              v-else
+              v-model.trim="title"
+              class="pop-browse__ttl task-edit-input"
+              aria-label="Название задачи"
+            />
+
+            <div
+              v-if="!isEditing"
+              class="categories__theme theme-top _active-category"
+              :style="getTopicStyle(task.topic)"
+            >
+              <p>{{ getTopicLabel(task.topic) }}</p>
+            </div>
+
+            <select
+              v-else
+              v-model="topic"
+              class="task-select task-topic-select"
+              :style="getTopicStyle(topic)"
+              aria-label="Категория задачи"
+            >
+              <option v-for="item in topics" :key="item" :value="item">
+                {{ item }}
+              </option>
+            </select>
+          </div>
+
+          <div class="pop-browse__status status">
+            <p class="status__p subttl">Статус</p>
+
+            <div class="status__themes">
+              <div v-if="!isEditing" class="status__theme _gray">
+                <p>{{ task.status }}</p>
+              </div>
+
+              <template v-else>
+                <button
+                  v-for="item in statuses"
+                  :key="item"
+                  type="button"
+                  class="status__theme"
+                  :class="{ _gray: status === item }"
+                  :aria-pressed="status === item"
+                  :disabled="isSaving"
+                  @click="status = item"
+                >
+                  {{ item }}
+                </button>
+              </template>
+            </div>
+          </div>
+
+          <div class="pop-browse__wrap">
+            <form class="pop-browse__form form-browse" @submit.prevent>
+              <div class="form-browse__block">
+                <label for="textArea01" class="subttl"> Описание задачи </label>
+
+                <textarea
+                  id="textArea01"
+                  v-model="description"
+                  class="form-browse__area"
+                  :readonly="!isEditing"
+                  :aria-invalid="descriptionError ? 'true' : 'false'"
+                  :aria-describedby="descriptionError ? 'description-error' : undefined"
+                  placeholder="Введите описание задачи..."
+                  @input="descriptionError = ''"
+                ></textarea>
+                <p
+                  v-if="descriptionError"
+                  id="description-error"
+                  class="field-error"
+                  role="alert"
+                >
+                  {{ descriptionError }}
                 </p>
 
-				<div class="pop-browse__top-block">
-					<h3 v-if="!isEditing"
-						class="pop-browse__ttl">
-						{{ task?.title }}
-					</h3>
+              </div>
+            </form>
 
-					<input
-                        v-else
-                        v-model.trim="title"
-                        class="pop-browse__ttl task-edit-input"
-                        aria-label="Название задачи"
-                    />
+            <div class="calendar">
+              <p class="calendar__ttl subttl">Даты</p>
 
-					<div
-					    v-if="!isEditing"
-						class="categories__theme theme-top _active-category"
-						:style="getTopicStyle(task.topic)"
-					>
-						<p>{{ getTopicLabel(task.topic) }}</p>
-					</div>
-
-					<select
-                        v-else
-                        v-model="topic"
-                        class="task-select task-topic-select"
-                        :style="getTopicStyle(topic)"
-                        aria-label="Категория задачи"
+              <div class="calendar__block">
+                <div class="calendar__nav">
+                  <div class="calendar__month">{{ calendarMonth }}</div>
+                  <div class="nav__actions">
+                    <button
+                      type="button"
+                      class="nav__action"
+                      aria-label="Предыдущий месяц"
+                      @click="changeCalendarMonth(-1)"
                     >
-                        <option v-for="item in topics" :key="item" :value="item">
-                            {{ item }}
-                        </option>
-                    </select>
-				</div>
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      class="nav__action"
+                      aria-label="Следующий месяц"
+                      @click="changeCalendarMonth(1)"
+                    >
+                      ›
+                    </button>
+                  </div>
+                </div>
+                <div class="calendar__content">
+                  <div class="calendar__days-names">
+                    <div
+                      v-for="(day, index) in weekDays"
+                      :key="day"
+                      class="calendar__day-name"
+                      :class="{ '-weekend-': index > 4 }"
+                    >
+                      {{ day }}
+                    </div>
+                  </div>
+                  <div class="calendar__cells">
+                    <button
+                      v-for="day in calendarDays"
+                      :key="day.value"
+                      type="button"
+                      class="calendar__cell _cell-day"
+                      :class="{
+                        '_other-month': !day.inCurrentMonth,
+                        _weekend: day.isWeekend,
+                        _current: day.isToday,
+                        '_active-day': day.isSelected,
+                      }"
+                      :aria-pressed="day.isSelected"
+                      :disabled="!isEditing"
+                      @click="selectCalendarDate(day)"
+                    >
+                      {{ day.day }}
+                    </button>
+                  </div>
+                </div>
+                <div class="calendar__period">
+                  <p class="calendar__p">
+                    Срок исполнения:
+                    <span>{{ formatInputDate(dueDate) }}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-				<div class="pop-browse__status status">
-					<p class="status__p subttl">Статус</p>
-
-					<div class="status__themes">
-					    <div v-if="!isEditing" class="status__theme _gray">
-							<p>{{ task.status }}</p>
-						</div>
-
-						<template v-else>
+          <div v-if="!isEditing" class="pop-browse__btn-browse">
+            <div class="btn-group">
               <button
-                v-for="item in statuses"
-                :key="item"
                 type="button"
-                class="status__theme"
-                :class="{ _gray: status === item }"
-                :aria-pressed="status === item"
-                :disabled="isSaving"
-                @click="status = item"
+                class="btn-browse__edit _btn-bor _hover03"
+                @click="startEditing"
               >
-                {{ item }}
+                Редактировать задачу
               </button>
-            </template>
-					</div>
-				</div>
 
-				<div class="pop-browse__wrap">
-					<form class="pop-browse__form form-browse" @submit.prevent>
-						<div class="form-browse__block">
-							<label for="textArea01" class="subttl">
-								Описание задачи
-							</label>
+              <button
+                type="button"
+                class="btn-browse__delete _btn-bor _hover03"
+                :disabled="isDeleting"
+                @click="removeTask"
+              >
+                {{ isDeleting ? 'Удаляем…' : 'Удалить задачу' }}
+              </button>
+            </div>
 
-							<textarea
-							    id="textArea01"
-                                v-model="description"
-							    class="form-browse__area"
-								:readonly="!isEditing"
-								placeholder="Введите описание задачи..."
-							></textarea>
-						</div>
-					</form>
+            <button type="button" class="btn-browse__close _btn-bg _hover01" @click="closeModal">
+              Закрыть
+            </button>
+          </div>
 
-					<div class="calendar">
-						<p class="calendar__ttl subttl">Даты</p>
+          <div v-else class="pop-browse__btn-edit">
+            <div class="btn-group">
+              <button
+                type="button"
+                class="btn-edit__edit _btn-bg _hover01"
+                :disabled="isSaving"
+                @click="saveTask"
+              >
+                {{ isSaving ? 'Сохраняем…' : 'Сохранить' }}
+              </button>
 
-						    
+              <button type="button" class="btn-edit__edit _btn-bor _hover03" @click="cancelEditing">
+                Отменить
+              </button>
 
-							
-    <div class="calendar__block">
-      <div class="calendar__nav">
-        <div class="calendar__month">{{ calendarMonth }}</div>
-        <div class="nav__actions">
-          <button
-            type="button"
-            class="nav__action"
-            aria-label="Предыдущий месяц"
-            @click="changeCalendarMonth(-1)"
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            class="nav__action"
-            aria-label="Следующий месяц"
-            @click="changeCalendarMonth(1)"
-          >
-            ›
-          </button>
-        </div>
-      </div>
-      <div class="calendar__content">
-        <div class="calendar__days-names">
-          <div
-            v-for="(day, index) in weekDays"
-            :key="day"
-            class="calendar__day-name"
-            :class="{ '-weekend-': index > 4 }"
-          >
-            {{ day }}
+              <button type="button" class="btn-edit__close _btn-bg _hover01" @click="closeModal">
+                Закрыть
+              </button>
+            </div>
           </div>
         </div>
-        <div class="calendar__cells">
-          <button
-            v-for="day in calendarDays"
-            :key="day.value"
-            type="button"
-            class="calendar__cell _cell-day"
-            :class="{
-              '_other-month': !day.inCurrentMonth,
-              _weekend: day.isWeekend,
-              _current: day.isToday,
-              '_active-day': day.isSelected,
-            }"
-            :aria-pressed="day.isSelected"
-            :disabled="!isEditing"
-            @click="selectCalendarDate(day)"
-          >
-            {{ day.day }}
-          </button>
-        </div>
-      </div>
-      <div class="calendar__period">
-        <p class="calendar__p">
-          Срок исполнения:
-          <span>{{ formatInputDate(dueDate) }}</span>
-        </p>
       </div>
     </div>
-  
-					</div>
-
-
-
-				</div>
-
-				<div v-if="!isEditing" class="pop-browse__btn-browse ">
-					<div class="btn-group">
-						<button
-						    type="button"
-						    class="btn-browse__edit _btn-bor _hover03"
-						    @click="startEditing"
-						>
-						    Редактировать задачу
-						</button>
-
-						<button
-						    type="button"
-							class="btn-browse__delete _btn-bor _hover03"
-							:disabled="isDeleting"
-							@click="removeTask"
-						>
-						    {{ isDeleting ? 'Удаляем…' : 'Удалить задачу' }}
-					    </button>
-					</div>
-
-						<button
-                            type="button"
-                            class="btn-browse__close _btn-bg _hover01"
-                            @click="closeModal"
-                        >
-                            Закрыть
-                        </button>
-				</div>
-
-				<div v-else class="pop-browse__btn-edit">
-					<div class="btn-group">
-						<button
-						    type="button"
-						    class="btn-edit__edit _btn-bg _hover01"
-							:disabled="isSaving"
-							@click="saveTask"
-						>
-							{{ isSaving ? 'Сохраняем…' : 'Сохранить' }}
-						</button>
-
-						<button
-						    type="button"
-						    class="btn-edit__edit _btn-bor _hover03"
-							@click="cancelEditing"
-						>
-							Отменить
-						</button>
-
-						<button
-						    type="button"
-						    class="btn-edit__close _btn-bg _hover01"
-							@click="closeModal"
-						>
-						    Закрыть
-						</button>
-					</div>
-				</div>
-
-			</div>
-		</div>
-	</div>
   </div>
 </template>
 
 <style scoped>
 .pop-browse {
-position: fixed;
-inset: 0;
-z-index: 7;
-display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  display: block;
 }
 
 .pop-browse__container {
-width: 100%;
-height: 100%;
-min-height: 100vh;
-padding: 0 16px;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-background: rgba(0, 0, 0, 0.4);
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
 }
 .pop-browse__block {
-position: relative;
-width: 100%;
-max-width: 630px;
-padding: 40px 30px 38px;
-border: 0.7px solid #d4dbe5;
-border-radius: 10px;
-background-color: #ffffff;
-max-height: calc(100vh - 32px);
-overflow-y: auto;
+  position: relative;
+  width: 100%;
+  max-width: 630px;
+  padding: 40px 30px 38px;
+  border: 0.7px solid #d4dbe5;
+  border-radius: 10px;
+  background-color: #ffffff;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
 }
 .pop-browse__content {
-display: block;
-text-align: left;
+  display: block;
+  text-align: left;
 }
 .pop-browse__content .categories__theme {
   opacity: 1;
@@ -492,132 +464,120 @@ text-align: left;
 .pop-browse__content .theme-top {
   display: block;
 }
-
 .pop-browse__top-block {
-margin-bottom: 18px;
-display: flex;
-align-items: center;
-justify-content: space-between;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .pop-browse__ttl {
-margin: 0;
-color: #000000;
-font-size: 20px;
-font-weight: 600;
-line-height: 24px;
+  margin: 0;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 24px;
 }
 .pop-browse__wrap {
-display: flex;
-align-items: flex-start;
-justify-content: space-between;
-}
-.pop-browse__form {
-width: 100%;
-max-width: 370px;
-margin-bottom: 20px;
-}
-.pop-browse__btn-browse, .pop-browse__btn-edit {
   display: flex;
-  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
 }
-.pop-browse__btn-browse button, .pop-browse__btn-edit button {
-  height: 30px;
-  margin-bottom: 10px;
-  padding: 0 14px;
+.pop-browse__form {
+  width: 100%;
+  max-width: 370px;
+  margin-bottom: 20px;
 }
-.pop-browse__btn-browse .btn-group button, .pop-browse__btn-edit .btn-group button {
+.pop-browse__btn-browse .btn-group button,
+.pop-browse__btn-edit .btn-group button {
   margin-right: 8px;
 }
 .form-browse__block {
-display: flex;
-flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 .form-browse__area {
-width: 100%;
-max-width: 370px;
-height: 200px;
-margin-top: 14px;
-padding: 14px;
-outline: none;
-border: 0.7px solid rgba(148, 166, 190, 0.4);
-border-radius: 8px;
-background-color: #eaEEF6;
-color: #000000;
-font-family: inherit;
-font-size: 14px;
-line-height: 1;
-letter-spacing: -0.14px;
-resize: vertical;
+  width: 100%;
+  max-width: 370px;
+  height: 200px;
+  margin-top: 14px;
+  padding: 14px;
+  outline: none;
+  border: 0.7px solid rgba(148, 166, 190, 0.4);
+  border-radius: 8px;
+  background-color: #eaeef6;
+  color: #000000;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: -0.14px;
+  resize: vertical;
 }
 .form-browse__area::placeholder {
-font-weight: 400;
+  font-weight: 400;
   font-size: 14px;
   line-height: 1px;
-  color: #94A6BE;
+  color: #94a6be;
   letter-spacing: -0.14px;
 }
 .form-browse__area::-moz-placeholder {
   font-weight: 400;
   font-size: 14px;
   line-height: 1px;
-  color: #94A6BE;
+  color: #94a6be;
   letter-spacing: -0.14px;
 }
 
 /* Статус задачи */
 .status {
-margin-bottom: 11px;
-display: flex;
-align-items: center;
-gap: 12px;
-flex-wrap: wrap;
+  margin-bottom: 11px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 .status__p {
-margin: 0;
-white-space: nowrap;
-flex: 0 0 auto;
+  margin: 0;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 .status__themes {
-display: flex;
-flex-wrap: nowrap;
-align-items: center;
-gap: 7px;
-
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 7px;
 }
 .status__theme {
-flex: 0 0 auto;
-padding: 8px 12px;
-border: 0.7px solid rgba(148, 166, 190, 0.4);
-border-radius: 24px;
-background: transparent;
-color: #94a6be;
-font: inherit;
-font-size: 14px;
-white-space: nowrap;
-cursor: pointer;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 0.7px solid rgba(148, 166, 190, 0.4);
+  border-radius: 24px;
+  background: transparent;
+  color: #94a6be;
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
 }
 .status__theme._gray {
-border-color: transparent;
-background-color: #94a6be;
-color: #ffffff;
+  border-color: transparent;
+  background-color: #94a6be;
+  color: #ffffff;
 }
 .status__theme p {
-margin: 0;
-color: inherit;
-font-size: 14px;
-line-height: 1;
-letter-spacing: -0.14px;
+  margin: 0;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: -0.14px;
 }
 /* Кнопки */
 .pop-browse__btn-browse,
 .pop-browse__btn-edit {
-display: flex;
-flex-wrap: wrap;
-align-items: flex-start;
-justify-content: space-between;
-gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
 }
 .pop-browse__ttl.task-edit-input {
   font-size: 20px;
@@ -625,182 +585,183 @@ gap: 10px;
   line-height: 24px;
 }
 .btn-group {
-display: flex;
-flex-wrap: wrap;
-gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .pop-browse__btn-browse button,
 .pop-browse__btn-edit button {
-min-height: 30px;
-padding: 0 14px;
-font-size: 14px;
+  min-height: 30px;
+  padding: 0 14px;
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 ._btn-bor,
 ._btn-bg {
-min-height: 30px;
-padding: 0 14px;
-border-radius: 4px;
-font-size: 14px;
-font-weight: 500;
+  min-height: 30px;
+  padding: 0 14px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
 }
 ._btn-bor {
-border: 0.7px solid #565eef;
-background-color: transparent;
-color: #565eef;
+  border: 0.7px solid #565eef;
+  background-color: transparent;
+  color: #565eef;
 }
 ._btn-bor a {
-  color: #565EEF;
+  color: #565eef;
 }
 ._btn-bg {
-border: 0;
-background-color: #565eef;
-color: #ffffff;
+  border: 0;
+  background-color: #565eef;
+  color: #ffffff;
 }
 ._btn-bg a {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 ._btn-bor:hover {
-background-color: #33399b;
-color: #ffffff;
+  background-color: #33399b;
+  color: #ffffff;
 }
 ._btn-bg:hover {
-background-color: #33399b;
+  background-color: #33399b;
 }
 ._hide {
-display: none;
+  display: none;
 }
 /* Категория */
 .categories__theme {
-width: auto;
-min-height: 30px;
-padding: 8px 20px;
-border-radius: 24px;
-opacity: 0.4;
-font-size: 14px;
-font-weight: 600;
+  width: auto;
+  min-height: 30px;
+  padding: 8px 20px;
+  border-radius: 24px;
+  opacity: 0.4;
+  font-size: 14px;
+  font-weight: 600;
 }
 .categories__theme._active-category {
-opacity: 1;
+  opacity: 1;
 }
 .categories__theme p {
-margin: 0;
-color: inherit;
-font-size: 14px;
-font-weight: 600;
-line-height: 14px;
-white-space: nowrap;
+  margin: 0;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 14px;
+  white-space: nowrap;
 }
 ._active-category {
   opacity: 1 !important;
 }
 /* Календарь */
 .calendar {
-width: 182px;
-margin-bottom: 20px;
+  width: 182px;
+  margin-bottom: 20px;
 }
 .calendar__ttl {
-margin-bottom: 14px;
-padding: 0 7px;
+  margin-bottom: 14px;
+  padding: 0 7px;
 }
 .calendar__block {
-display: block;
+  display: block;
 }
 .calendar__nav {
-width: 100%;
-margin-top: 14px;
-padding: 0 7px;
-display: flex;
-align-items: center;
-justify-content: space-between;
+  width: 100%;
+  margin-top: 14px;
+  padding: 0 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .calendar__month {
-color: #94a6be;
-font-size: 14px;
-font-weight: 600;
-line-height: 25px;
+  color: #94a6be;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 25px;
 }
 .nav__actions {
-display: flex;
-align-items: center;
-justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .nav__action {
-width: 18px;
-height: 25px;
-display: flex;
-align-items: center;
-justify-content: center;
-cursor: pointer;
-padding: 0;
-border: 0;
-background: transparent;
-color: #94a6be;
-font: inherit;
-font-size: 20px;
-line-height: 1;
+  width: 18px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #94a6be;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
 }
 .nav__action svg {
-fill: #94a6be;
+  fill: #94a6be;
 }
 .calendar__content {
-margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 .calendar__days-names {
-margin: 7px 0;
-padding: 0 7px;
-display: flex;
-align-items: center;
-justify-content: space-between;
+  margin: 7px 0;
+  padding: 0 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .calendar__day-name {
-color: #94a6be;
-font-size: 10px;
-font-weight: 500;
+  color: #94a6be;
+  font-size: 10px;
+  font-weight: 500;
 }
 .calendar__cells {
-width: 182px;
-height: 126px;
-display: flex;
-flex-wrap: wrap;
+  width: 182px;
+  height: auto;
+  display: flex;
+  flex-wrap: wrap;
 }
 .calendar__cell {
-width: 22px;
-height: 22px;
-margin: 2px;
-display: flex;
-align-items: center;
-justify-content: center;
-border-radius: 50%;
-color: #94a6be;
-cursor: pointer;
-font-size: 10px;
-padding: 0;
-border: 0;
-background: transparent;
-font-family: inherit;
+  width: 22px;
+  height: 22px;
+  margin: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #94a6be;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
 }
 .calendar__cell._other-month {
-opacity: 0.35;
+  opacity: 0.35;
 }
 .calendar__cell._cell-day:hover {
-background-color: #eaEEF6;
+  background-color: #eaeef6;
 }
 .calendar__cell._active-day {
-background-color: #94a6be;
-color: #ffffff;
+  background-color: #94a6be;
+  color: #ffffff;
 }
 .calendar__cell._current {
-font-weight: 700;
+  font-weight: 700;
 }
 .calendar__period {
-padding: 0 7px;
+  padding: 0 7px;
 }
 .calendar__p {
-color: #94a6be;
-font-size: 10px;
+  color: #94a6be;
+  font-size: 10px;
 }
 .calendar__p span {
-color: #000000;
+  color: #000000;
 }
 .subttl {
   color: #000;
@@ -809,25 +770,26 @@ color: #000000;
   line-height: 1;
 }
 
-
 ._hover01:hover {
   background-color: #33399b;
 }
 
-._hover02:hover, .header__user:hover {
+._hover02:hover,
+.header__user:hover {
   color: #33399b;
 }
-._hover02:hover::after, .header__user:hover::after {
+._hover02:hover::after,
+.header__user:hover::after {
   border-left-color: #33399b;
   border-bottom-color: #33399b;
 }
 
 ._hover03:hover {
   background-color: #33399b;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 ._hover03:hover a {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .task-select,
@@ -846,7 +808,7 @@ color: #000000;
   background: #fff;
   font: inherit;
   outline: none;
-  border: none; 
+  border: none;
 }
 .task-edit-input:focus {
   outline: none;
@@ -859,6 +821,12 @@ color: #000000;
 .task-error {
   color: #c0392b;
 }
+.field-error {
+  margin: 8px 0 0;
+  color: #c0392b;
+  font-size: 12px;
+  line-height: 1.4;
+}
 .task-topic-select {
   min-height: 30px;
   border: 0;
@@ -869,74 +837,73 @@ color: #000000;
   outline: none;
 }
 @media screen and (max-width: 660px) {
-.pop-browse {
-top: 70px;
-}
-.pop-browse__container {
-padding: 0;
-justify-content: flex-start;
-}
-.pop-browse__block {
-min-height: 100%;
-border-radius: 0;
-}
-.pop-browse__wrap {
-display: block;
-}
-.calendar {
-width: 100%;
-max-width: 340px;
-}
-.calendar__ttl,
-.calendar__nav,
-.calendar__period {
-padding: 0;
-}
-.calendar__cells {
-width: 344px;
-height: auto;
-justify-content: space-around;
-}
-.calendar__cell {
-width: 42px;
-height: 42px;
-font-size: 14px;
-}
+  .pop-browse {
+    top: 70px;
+  }
+  .pop-browse__container {
+    padding: 0;
+    justify-content: flex-start;
+  }
+  .pop-browse__block {
+    min-height: 100%;
+    border-radius: 0;
+  }
+  .pop-browse__wrap {
+    display: block;
+  }
+  .calendar {
+    width: 100%;
+    max-width: 340px;
+  }
+  .calendar__ttl,
+  .calendar__nav,
+  .calendar__period {
+    padding: 0;
+  }
+  .calendar__cells {
+    width: 344px;
+    height: auto;
+    justify-content: space-around;
+  }
+  .calendar__cell {
+    width: 42px;
+    height: 42px;
+    font-size: 14px;
+  }
 }
 @media screen and (max-width: 495px) {
-.pop-new-card__container {
-padding: 0;
-justify-content: flex-start;
-}
-.pop-browse__block {
-padding: 20px 16px 32px;
-}
-.pop-browse__form {
-max-width: 100%;
-width: 100%;
-display: block;
-}
-.pop-new-card__calendar {
-width: 100%;
-}
-.form-browse__area {
-height: 37px;
-max-width: 100%;
-}
-.pop-browse__btn-browse,
-.pop-browse__btn-edit {
-display: block;
-}
-.btn-group {
-width: 100%;
-display: block;
-}
-.pop-browse__btn-browse button,
-.pop-browse__btn-edit button {
-width: 100%;
-height: 40px;
-margin-bottom: 10px;
-}
+  .pop-new-card__container {
+    padding: 0;
+    justify-content: flex-start;
+  }
+  .pop-browse__block {
+    padding: 20px 16px 32px;
+  }
+  .pop-browse__form {
+    max-width: 100%;
+    width: 100%;
+    display: block;
+  }
+  .pop-new-card__calendar {
+    width: 100%;
+  }
+  .form-browse__area {
+    height: 37px;
+    max-width: 100%;
+  }
+  .pop-browse__btn-browse,
+  .pop-browse__btn-edit {
+    display: block;
+  }
+  .btn-group {
+    width: 100%;
+    display: block;
+  }
+  .pop-browse__btn-browse button,
+  .pop-browse__btn-edit button {
+    width: 100%;
+    height: 40px;
+    margin-bottom: 10px;
+  }
 }
 </style>
-

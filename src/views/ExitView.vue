@@ -1,7 +1,12 @@
 <script setup>
-import { inject } from 'vue'
+import { inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AUTH_KEY } from '../injectionKeys.js'
+import { onClickOutside } from '@vueuse/core'
+
+const confirmDialog = ref(null)
+onClickOutside(confirmDialog, stay)
+
 
 const auth = inject(AUTH_KEY)
 if (!auth) {
@@ -23,12 +28,8 @@ function stay() {
       <h1>Выйти из аккаунта?</h1>
 
       <div class="pop-exit-actions">
-        <button type="button" @click="logout">
-          Да, выйти
-        </button>
-        <button type="button" @click="stay">
-          Нет, остаться
-        </button>
+        <button type="button" @click="logout">Да, выйти</button>
+        <button type="button" @click="stay">Нет, остаться</button>
       </div>
     </section>
   </main>
@@ -76,5 +77,40 @@ function stay() {
 .pop-exit-actions button:first-child {
   background-color: #565eef;
   color: #ffffff;
+}
+@media screen and (max-width: 375px) {
+  .pop-exit__block {
+    padding: 50px 20px;
+  }
+  .pop-exit__form-group {
+    display: block;
+  }
+  .pop-exit__exit-yes,
+  .pop-exit__exit-no {
+    width: 100%;
+    height: 40px;
+  }
+  .pop-exit__exit-yes {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+}
+@media only screen and (max-width: 375px) {
+  .pop-exit__block {
+    padding: 50px 20px;
+  }
+  .pop-exit__exit-yes {
+    width: 100%;
+    height: 40px;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+  .pop-exit__exit-no {
+    width: 100%;
+    height: 40px;
+  }
+  .pop-exit__form-group {
+    display: block;
+  }
 }
 </style>

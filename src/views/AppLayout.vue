@@ -2,12 +2,7 @@
 import { provide } from 'vue'
 import { RouterView } from 'vue-router'
 import { AUTH_KEY, TASKS_KEY } from '../injectionKeys.js'
-import {
-  clearSession,
-  currentUser,
-  isAuthenticated,
-  setSession,
-} from '../services/session.js'
+import { clearSession, currentUser, isAuthenticated, setSession } from '../services/session.js'
 import { loginUser, registerUser } from '../services/api.js'
 import {
   createTask,

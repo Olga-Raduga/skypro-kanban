@@ -2,6 +2,14 @@
 import { computed, inject, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { AUTH_KEY } from '../injectionKeys.js'
+import { onClickOutside } from '@vueuse/core'
+import { useTheme } from '../composables/useTheme.js'
+
+const userMenu = ref(null)
+const { isDark, toggleTheme } = useTheme()
+onClickOutside(userMenu, () => {
+  isUserMenuOpen.value = false
+})
 
 const auth = inject(AUTH_KEY)
 if (!auth) {
@@ -12,14 +20,9 @@ const isUserMenuOpen = ref(false)
 const router = useRouter()
 
 const displayName = computed(
-  () =>
-    auth.currentUser.value?.name ||
-    auth.currentUser.value?.login ||
-    'Пользователь'
+  () => auth.currentUser.value?.name || auth.currentUser.value?.login || 'Пользователь',
 )
-const displayEmail = computed(
-  () => auth.currentUser.value?.login || ''
-)
+const displayEmail = computed(() => auth.currentUser.value?.login || '')
 </script>
 <template>
   <header class="header">
@@ -32,36 +35,49 @@ const displayEmail = computed(
         </div>
         <div class="header__logo _dark">
           <RouterLink to="/">
-            <img src="/assets/logo_dark.png" alt="Логотип Skypro"/>
+            <img src="/assets/logo_dark.png" alt="Логотип Skypro" />
           </RouterLink>
         </div>
         <nav class="header__nav">
-          <button type="button" class="header__btn-main-new _hover01"
-            id="btnMainNew"
-            @click="router.push('/add-task')">Создать новую задачу
-          </button>
           <button
-           type="button" class="header__user _hover02"
+            type="button"
+            class="header__btn-main-new _hover01"
+            id="btnMainNew"
+            @click="router.push('/add-task')"
+          >
+            Создать новую задачу
+          </button>
+
+          <div ref="userMenu" class="header__user-menu">
+            <button
+              type="button"
+              class="header__user _hover02"
               :aria-expanded="isUserMenuOpen"
               aria-controls="user-set-target"
-              @click="isUserMenuOpen = !isUserMenuOpen">{{ displayName }}
-          </button>
+              @click="isUserMenuOpen = !isUserMenuOpen"
+            >
+              {{ displayName }}
+            </button>
 
-          <div
-            v-if="isUserMenuOpen"
-            id="user-set-target" class="header__pop-user-set">
-
+            <div v-if="isUserMenuOpen" id="user-set-target" class="header__pop-user-set">
               <p class="pop-user-set__name">{{ displayName }}</p>
               <p class="pop-user-set__mail">{{ displayEmail }}</p>
-            <div class="pop-user-set__theme">
-              <p>Темная тема</p>
-              <input type="checkbox" name="theme"
-              />
+
+              <label class="pop-user-set__theme">
+                <span>{{ isDark ? 'Тёмная тема' : 'Светлая тема' }}</span>
+                <input
+                  type="checkbox"
+                  name="theme"
+                  :checked="isDark"
+                  :aria-label="isDark ? 'Выключить тёмную тему' : 'Включить тёмную тему'"
+                  @change="toggleTheme()"
+                />
+              </label>
+
+              <button type="button" class="pop-user-set__exit" @click="router.push('/exit')">
+                Выйти
+              </button>
             </div>
-            <button type="button" class="_hover03"
-            @click="router.push('/exit')">
-            Выйти
-            </button>
           </div>
         </nav>
       </div>
@@ -71,126 +87,131 @@ const displayEmail = computed(
 
 <style scoped>
 ._dark {
-display: none;
+  display: none;
 }
 .header {
-width: 100%;
-background-color: #ffffff;
+  width: 100%;
+  background-color: #ffffff;
 }
 .header__block {
-position: relative;
-height: 70px;
-padding: 0 10px;
-display: flex;
-align-items: center;
-justify-content: space-between;
+  position: relative;
+  height: 70px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .header__logo img {
-display: block;
-width: 85px;
+  display: block;
+  width: 85px;
 }
 .header__nav {
-position: relative;
-display: flex;
-align-items: center;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 .header__btn-main-new {
-width: 178px;
-height: 30px;
-margin-right: 20px;
-display: flex;
-align-items: center;
-justify-content: center;
-border-radius: 4px;
-background-color: #565eef;
-color: #ffffff;
-font-size: 14px;
-font-weight: 500;
-line-height: 1;
+  width: 178px;
+  height: 30px;
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background-color: #565eef;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
 }
 .header__btn-main-new:hover {
-background-color: #33399b;
+  background-color: #33399b;
 }
 .header__user {
-height: 20px;
-display: flex;
-align-items: center;
-border: 0;
-background: transparent;
-color: #565eef;
-font-size: 14px;
-line-height: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: #565eef;
+  font-size: 14px;
+  line-height: 20px;
+}
+.header__user-menu {
+  position: relative;
 }
 .header__user::after {
-content: '';
-width: 6px;
-height: 6px;
-margin: -6px 0 0 5px;
-border-left: 1.9px solid #565eef;
-border-bottom: 1.9px solid #565eef;
-border-radius: 1px;
-transform: rotate(-45deg);
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin: -6px 0 0 5px;
+  border-left: 1.9px solid #565eef;
+  border-bottom: 1.9px solid #565eef;
+  border-radius: 1px;
+  transform: rotate(-45deg);
 }
 .header__user:hover {
-color: #33399b;
+  color: #33399b;
 }
 .header__pop-user-set {
-position: absolute;
-top: 45px;
-right: 0;
-z-index: 2;
-width: 213px;
-min-height: 205px;
-padding: 34px;
-border: 0.7px solid rgba(148, 166, 190, 0.4);
-border-radius: 10px;
-background-color: #ffffff;
-box-shadow: 0 10px 39px rgba(26, 56, 101, 0.21);
-text-align: center;
+  position: absolute;
+  top: 45px;
+  right: 0;
+  z-index: 2;
+  width: 213px;
+  min-height: 205px;
+  padding: 34px;
+  border: 0.7px solid rgba(148, 166, 190, 0.4);
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 10px 39px rgba(26, 56, 101, 0.21);
+  text-align: center;
 }
 
 ._hover01:hover {
   background-color: #33399b;
 }
 
-._hover02:hover, .header__user:hover {
+._hover02:hover,
+.header__user:hover {
   color: #33399b;
 }
-._hover02:hover::after, .header__user:hover::after {
+._hover02:hover::after,
+.header__user:hover::after {
   border-left-color: #33399b;
   border-bottom-color: #33399b;
 }
 
 ._hover03:hover {
   background-color: #33399b;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 ._hover03:hover a {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .pop-user-set__name {
-margin-bottom: 4px;
-color: #000000;
-font-size: 14px;
-font-weight: 500;
-line-height: 21px;
-letter-spacing: -0.14px;
+  margin-bottom: 4px;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  letter-spacing: -0.14px;
 }
 .pop-user-set__mail {
-margin-bottom: 24px;
-color: #94a6be;
-font-size: 14px;
-line-height: 21px;
-letter-spacing: -0.14px;
+  margin-bottom: 24px;
+  color: #94a6be;
+  font-size: 14px;
+  line-height: 21px;
+  letter-spacing: -0.14px;
 }
 .pop-user-set__theme {
-margin-bottom: 24px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-color: #000000;
-font-size: 14px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #000000;
+  font-size: 14px;
 }
 .pop-user-set__theme p {
   color: #000;
@@ -199,77 +220,87 @@ font-size: 14px;
   letter-spacing: -0.14px;
 }
 .pop-user-set__theme input {
-width: 24px;
-height: 13px;
-appearance: none;
-border-radius: 100px;
-background-color: #eaEEF6;
+  width: 24px;
+  height: 13px;
+  appearance: none;
+  border-radius: 100px;
+  background-color: #eaeef6;
 }
 
-.pop-user-set__theme input[type=checkbox] {
+.pop-user-set__theme input[type='checkbox'] {
   position: relative;
   width: 24px;
   height: 13px;
   border-radius: 100px;
-  background: #EAEEF6;
+  background: #eaeef6;
   outline: none;
   -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
-.pop-user-set__theme input[type=checkbox]::before {
-  content: "";
+.pop-user-set__theme input[type='checkbox']::before {
+  content: '';
   position: absolute;
   top: 1px;
   left: 1px;
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background-color: #94A6BE;
+  background-color: #94a6be;
   transition: 0.5s;
 }
-.pop-user-set__theme input:checked[type=checkbox]::before {
+.pop-user-set__theme input:checked[type='checkbox']::before {
   left: 12px;
 }
 .pop-user-set button {
   width: 72px;
   height: 30px;
   background: transparent;
-  color: #565EEF;
+  color: #565eef;
   border-radius: 4px;
-  border: 1px solid #565EEF;
+  border: 1px solid #565eef;
 }
 .pop-user-set button a {
-  color: #565EEF;
+  color: #565eef;
 }
-
 
 .pop-user-set__exit {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-width: 72px;
-height: 30px;
-border: 1px solid #565eef;
-border-radius: 4px;
-color: #565eef;
-font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 72px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #565eef;
+  border-radius: 4px;
+  background: transparent;
+  color: #565eef;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  appearance: none;
 }
 .pop-user-set__exit:hover {
-background-color: #33399b;
-color: #ffffff;
+  background-color: #33399b;
+  color: #ffffff;
+}
+.pop-user-set__exit:focus-visible {
+  outline: 2px solid #33399b;
+  outline-offset: 2px;
 }
 @media screen and (max-width: 495px) {
-.header__btn-main-new {
-position: fixed;
-left: 16px;
-bottom: 30px;
-top: auto;
-z-index: 3;
-width: calc(100vw - 32px);
-height: 40px;
-border-radius: 4px;
-margin-right: 0;
-}
+  .header__btn-main-new {
+    position: fixed;
+    left: 16px;
+    bottom: 30px;
+    top: auto;
+    z-index: 3;
+    width: calc(100vw - 32px);
+    height: 40px;
+    border-radius: 4px;
+    margin-right: 0;
+  }
 }
 </style>
