@@ -180,3 +180,118 @@ body {
 .auth-form input.auth-input_invalid:focus {
   border-color: #e74c3c;
 }
+
+:root {
+  color-scheme: light;
+  --app-background: #f1f1f1;
+  --surface: #ffffff;
+  --field-background: #ffffff;
+  --text-primary: #000000;
+  --text-muted: #94a6be;
+  --border: #d4dbe5;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --app-background: #111218;
+  --surface: #1b1d26;
+  --field-background: #151720;
+  --text-primary: #f2f3f8;
+  --text-muted: #a0a8ba;
+  --border: #353846;
+}
+body {
+  color: var(--text-primary);
+  background-color: var(--app-background);
+  transition:
+    color 180ms ease,
+    background-color 180ms ease;
+}
+:root[data-theme='dark'] body,
+:root[data-theme='dark'] .wrapper,
+:root[data-theme='dark'] .main,
+:root[data-theme='dark'] .auth-page {
+  color: var(--text-primary);
+  background-color: var(--app-background);
+}
+:root[data-theme='dark'] .header,
+:root[data-theme='dark'] .cards__card,
+:root[data-theme='dark'] .auth-card,
+:root[data-theme='dark'] .route-modal__card,
+:root[data-theme='dark'] .pop-new-card__block,
+:root[data-theme='dark'] .pop-browse__block,
+:root[data-theme='dark'] .pop-exit-card,
+:root[data-theme='dark'] .header__pop-user-set {
+  color: var(--text-primary);
+  background-color: var(--surface);
+  border-color: var(--border);
+}
+:root[data-theme='dark'] .header__logo:not(._dark) {
+  display: none;
+}
+:root[data-theme='dark'] .header__logo._dark {
+  display: block;
+}
+:root[data-theme='dark'] .card__title,
+:root[data-theme='dark'] .pop-new-card__ttl,
+:root[data-theme='dark'] .pop-browse__ttl,
+:root[data-theme='dark'] .pop-user-set__name,
+:root[data-theme='dark'] .pop-user-set__theme span,
+:root[data-theme='dark'] .auth-card h1,
+:root[data-theme='dark'] .not-found-card h2,
+:root[data-theme='dark'] .route-modal h1,
+:root[data-theme='dark'] .pop-exit-card h1,
+:root[data-theme='dark'] .subttl,
+:root[data-theme='dark'] .calendar__p span {
+  color: var(--text-primary);
+}
+:root[data-theme='dark'] .column__title h2,
+:root[data-theme='dark'] .loader__text,
+:root[data-theme='dark'] .empty-state,
+:root[data-theme='dark'] .calendar__month,
+:root[data-theme='dark'] .calendar__day-name,
+:root[data-theme='dark'] .calendar__cell,
+:root[data-theme='dark'] .calendar__p,
+:root[data-theme='dark'] .calendar__nav .nav__action,
+:root[data-theme='dark'] .card__date p,
+:root[data-theme='dark'] .pop-user-set__mail,
+:root[data-theme='dark'] .not-found-text {
+  color: var(--text-muted);
+}
+:root[data-theme='dark'] .auth-form input,
+:root[data-theme='dark'] .form-new__input,
+:root[data-theme='dark'] .form-new__area,
+:root[data-theme='dark'] .form-browse__area,
+:root[data-theme='dark'] .task-edit-input,
+:root[data-theme='dark'] .task-select {
+  color: var(--text-primary);
+  background-color: var(--field-background);
+  border-color: var(--border);
+}
+:root[data-theme='dark'] .form-new__input::placeholder,
+:root[data-theme='dark'] .form-new__area::placeholder,
+:root[data-theme='dark'] .form-browse__area::placeholder {
+  color: var(--text-muted);
+}
+:root[data-theme='dark'] .calendar__cell._cell-day:hover {
+  background-color: #22242e;
+}
+:root[data-theme='dark'] .calendar__cell._active-day,
+:root[data-theme='dark'] .status__theme._gray {
+  background-color: #68708a;
+  color: #ffffff;
+}
+:root[data-theme='dark'] .pop-user-set__theme input[type='checkbox'] {
+  background-color: #3a3d4c;
+}
+:root[data-theme='dark'] .pop-user-set__theme input[type='checkbox']::before {
+  background-color: #c0c8d9;
+}
+:root[data-theme='dark'] .pop-new-card__container,
+:root[data-theme='dark'] .pop-browse__container,
+:root[data-theme='dark'] .pop-exit-page {
+  background: rgba(0, 0, 0, 0.68);
+}
+:root[data-theme='dark'] .loader__spinner {
+  border-color: #303342;
+  border-top-color: #777cff;
+}
