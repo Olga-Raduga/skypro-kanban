@@ -125,12 +125,7 @@ function toApiDate(value) {
   const [year, month, day] = value.split('-').map(Number)
   return new Date(year, month - 1, day, 12).toISOString()
 }
-const displayDate = computed(() => {
-  if (!task.value?.date) return ''
-  const date = new Date(task.value.date)
-  if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat('ru-RU').format(date)
-})
+
 function fillForm(source) {
   title.value = source.title ?? ''
   topic.value = topicThemes[source.topic] ? source.topic : topics[0]

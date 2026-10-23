@@ -1,5 +1,5 @@
 <script setup>
-  import Task from './Task.vue'
+  import TaskCard from './TaskCard.vue'
   
   defineProps({ title: {
       type: String,
@@ -18,7 +18,7 @@
   </div>
 
   <div class="cards">
-    <Task
+    <TaskCard
       v-for="task in tasks"
       :key="task.id"
       v-bind="task"
