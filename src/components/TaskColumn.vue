@@ -1,7 +1,7 @@
 <script setup>
 import TaskCard from './TaskCard.vue'
 
-defineProps({
+const props = defineProps({
   title: {
     type: String,
     required: true,
@@ -11,10 +11,25 @@ defineProps({
     default: () => [],
   },
 })
+
+const emit = defineEmits(['drop-task'])
+function handleDrop(event) {
+  const taskId = event.dataTransfer?.getData('text/plain')
+  if (!taskId) return
+  emit('drop-task', {
+    taskId,
+    status: props.title,
+  })
+}
 </script>
 
 <template>
-  <section class="main__column" @dragover.prevent @drop="handleDrop">
+  <section 
+    class="main__column" 
+    @dragover.prevent 
+    @drop.prevent="handleDrop"
+  >
+
     <div class="column__title">
       <h2>{{ title }}</h2>
     </div>
